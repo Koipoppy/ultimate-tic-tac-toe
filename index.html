@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>双层井字棋 - LAN联机对弈</title>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Segoe UI','Microsoft YaHei',sans-serif;
+  background:#0a0a1a;
+  color:#e0e0e0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  user-select:none;
+  background:radial-gradient(ellipse at center,#1a1a3a 0%,#0a0a1a 70%);
+}
+.container{width:100%;max-width:720px;padding:20px}
+
+/* ===== MENU SCREEN ===== */
+#menu-screen{display:flex;flex-direction:column;align-items:center;gap:24px}
+#menu-screen h1{
+  font-size:2.2em;
+  background:linear-gradient(135deg,#00e5ff,#7c4dff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-align:center;
+  text-shadow:none;
+}
+#menu-screen .subtitle{color:#888;font-size:0.95em;text-align:center}
+.menu-card{
+  background:#12122a;
+  border:1px solid #2a2a4a;
+  border-radius:16px;
+  padding:28px;
+  width:100%;
+  max-width:400px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.menu-card h3{color:#ccc;font-size:1em;text-align:center}
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-size:0.85em;color:#aaa}
+.input-group input{
+  padding:12px 16px;
+  border-radius:10px;
+  border:1px solid #3a3a5a;
+  background:#0a0a20;
+  color:#fff;
+  font-size:1.05em;
+  text-align:center;
+  letter-spacing:2px;
+  outline:none;
+  transition:border .2s;
+}
+.input-group input:focus{border-color:#7c4dff}
+.btn{
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  font-size:1em;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  letter-spacing:1px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,#00e5ff,#7c4dff);
+  color:#fff;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(124,77,255,.4)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-secondary{
+  background:transparent;
+  border:1px solid #3a3a5a;
+  color:#ccc;
+}
+.btn-secondary:hover{border-color:#7c4dff;color:#fff}
+.btn-sm{padding:10px 20px;font-size:.85em}
+.divider{display:flex;align-items:center;gap:12px;color:#555;font-size:.85em}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#2a2a4a}
+
+/* ===== STATUS BAR ===== */
+#status-bar{
+  display:none;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 20px;
+  background:#12122a;
+  border:1px solid #2a2a4a;
+  border-radius:12px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+  gap:10px;
+}
+#status-bar .room-info{display:flex;align-items:center;gap:12px}
+#status-bar .room-code-badge{
+  background:#1a1a3a;
+  padding:6px 14px;
+  border-radius:8px;
+  font-family:'Consolas',monospace;
+  font-size:1.1em;
+  color:#00e5ff;
+  border:1px solid #2a2a4a;
+  letter-spacing:3px;
+}
+#status-bar .player-indicator{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+}
+#status-bar .dot{
+  width:12px;height:12px;
+  border-radius:50%;
+  display:inline-block;
+}
+.dot-active{background:#00e5ff;box-shadow:0 0 10px #00e5ff}
+.dot-wait{background:#555}
+
+/* ===== GAME SCREEN ===== */
+#game-screen{display:none;flex-direction:column;align-items:center;gap:20px}
+
+/* ===== INFO STRIP ===== */
+.info-strip{
+  display:none;
+  text-align:center;
+  padding:10px 20px;
+  background:#12122a;
+  border:1px solid #2a2a4a;
+  border-radius:10px;
+  font-size:.9em;
+  color:#aaa;
+  min-height:40px;
+}
+.info-strip .highlight{color:#ffeb3b;font-weight:600}
+.info-strip .warn{color:#ff5252}
+
+/* ===== BOARD ===== */
+.board-wrapper{position:relative}
+#board{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  background:#1a1a3a;
+  padding:6px;
+  border-radius:14px;
+  border:2px solid #2a2a4a;
+}
+.large-cell{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:2px;
+  background:#0d0d25;
+  padding:3px;
+  border-radius:8px;
+  border:2px solid #252550;
+  transition:border-color .3s,box-shadow .3s;
+}
+.large-cell.won-x{border-color:#00e5ff;box-shadow:0 0 15px rgba(0,229,255,.3)}
+.large-cell.won-o{border-color:#ff5252;box-shadow:0 0 15px rgba(255,82,82,.3)}
+.large-cell.draw{border-color:#666;opacity:.7}
+.large-cell.target{border-color:#ffeb3b;box-shadow:0 0 12px rgba(255,235,59,.25)}
+.large-cell.banned{opacity:.4;border-color:#3a1020;background:#1a0a15}
+.small-cell{
+  aspect-ratio:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#16163a;
+  border-radius:5px;
+  cursor:default;
+  transition:background .2s,transform .15s;
+  position:relative;
+  min-width:40px;
+  min-height:40px;
+}
+.small-cell.clickable{
+  cursor:pointer;
+  background:#1e1e48;
+}
+.small-cell.clickable:hover{
+  background:#2a2a5a;
+  transform:scale(1.06);
+  z-index:2;
+}
+.small-cell .mark{
+  font-size:1.5em;
+  font-weight:700;
+  transition:all .2s;
+}
+.small-cell .mark-x{color:#00e5ff;text-shadow:0 0 10px rgba(0,229,255,.5)}
+.small-cell .mark-o{color:#ff5252;text-shadow:0 0 10px rgba(255,82,82,.5)}
+.large-cell.banned .small-cell.clickable{background:#1a0a15;cursor:default}
+.large-cell.banned .small-cell.clickable:hover{background:#1a0a15;transform:none}
+.large-cell-overlay{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  pointer-events:none;
+  font-size:2.5em;
+  font-weight:900;
+  z-index:5;
+}
+.large-cell{position:relative}
+.large-cell-overlay.win-x{color:rgba(0,229,255,.7)}
+.large-cell-overlay.win-o{color:rgba(255,82,82,.7)}
+
+/* ===== GAME OVER OVERLAY ===== */
+#overlay{
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.75);
+  z-index:100;
+  justify-content:center;
+  align-items:center;
+}
+#overlay.show{display:flex}
+.overlay-card{
+  background:#12122a;
+  border:2px solid #2a2a4a;
+  border-radius:20px;
+  padding:36px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  max-width:360px;
+  width:90%;
+}
+.overlay-card h2{font-size:1.8em}
+.overlay-card .win-text-x{color:#00e5ff}
+.overlay-card .win-text-o{color:#ff5252}
+.overlay-card .win-text-draw{color:#ffeb3b}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#ff5252;
+  color:#fff;
+  padding:12px 24px;
+  border-radius:10px;
+  z-index:200;
+  font-weight:600;
+  animation:fadeInOut 2.5s forwards;
+  pointer-events:none;
+}
+.toast.success{background:#4caf50}
+@keyframes fadeInOut{
+  0%{opacity:0;top:0}
+  15%{opacity:1;top:20px}
+  75%{opacity:1;top:20px}
+  100%{opacity:0;top:0}
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:500px){
+  .container{padding:10px}
+  #menu-screen h1{font-size:1.6em}
+  .small-cell .mark{font-size:1.2em}
+  .small-cell{min-width:32px;min-height:32px}
+  .large-cell-overlay{font-size:1.8em}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- MENU SCREEN -->
+  <div id="menu-screen">
+    <h1>⛋ 双层井字棋</h1>
+    <p class="subtitle">Ultimate Tic-Tac-Toe · LAN联机对弈</p>
+    <div class="menu-card">
+      <h3>🎮 创建房间</h3>
+      <div class="input-group">
+        <label>你的昵称</label>
+        <input type="text" id="host-name" placeholder="玩家一" maxlength="8">
+      </div>
+      <button class="btn btn-primary" id="btn-create">创建房间</button>
+    </div>
+    <div class="divider">或</div>
+    <div class="menu-card">
+      <h3>🔗 加入房间</h3>
+      <div class="input-group">
+        <label>你的昵称</label>
+        <input type="text" id="guest-name" placeholder="玩家二" maxlength="8">
+      </div>
+      <div class="input-group">
+        <label>4位房间码</label>
+        <input type="text" id="room-code-input" placeholder="0000" maxlength="4" pattern="[0-9]{4}">
+      </div>
+      <button class="btn btn-primary" id="btn-join">加入房间</button>
+    </div>
+    <p style="color:#555;font-size:.8em;text-align:center;max-width:400px">
+      💡 提示：一个玩家创建房间后将4位房间码告知对方，对方输入房间码即可联机对弈
+    </p>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen">
+    <div id="status-bar">
+      <div class="room-info">
+        <span style="color:#888;font-size:.85em">房间</span>
+        <span class="room-code-badge" id="room-code-display">----</span>
+      </div>
+      <div class="player-indicator">
+        <span>你：</span>
+        <span id="my-symbol-display" style="font-weight:700">-</span>
+        <span>| 执子：</span>
+        <span id="turn-display" style="font-weight:700">-</span>
+        <span class="dot" id="turn-dot"></span>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-leave">离开</button>
+    </div>
+    <div class="info-strip" id="info-strip"></div>
+    <div class="board-wrapper">
+      <div id="board"></div>
+    </div>
+    <button class="btn btn-secondary btn-sm" id="btn-restart" style="display:none">再来一局</button>
+  </div>
+
+  <!-- GAME OVER OVERLAY -->
+  <div id="overlay">
+    <div class="overlay-card">
+      <h2 id="overlay-title"></h2>
+      <p id="overlay-msg"></p>
+      <button class="btn btn-primary" id="btn-play-again">再来一局</button>
+      <button class="btn btn-secondary" id="btn-back-menu">返回大厅</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ==================== GAME ENGINE ====================
+const WIN_LINES = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+];
+
+function checkWin3x3(cells){
+  for(const [a,b,c] of WIN_LINES){
+    if(cells[a] && cells[a]===cells[b] && cells[a]===cells[c]) return cells[a];
+  }
+  return null;
+}
+
+function isFull3x3(cells){
+  return cells.every(c=>c!==null);
+}
+
+const GameState = {
+  board: [],        // board[largeIdx][smallIdx] = 'X'|'O'|null
+  largeWinner: [],  // largeWinner[largeIdx] = 'X'|'O'|'draw'|null
+  currentPlayer: 'X',
+  bannedLargeIdx: null,
+  gameOver: false,
+  winner: null,     // 'X'|'O'|'draw'|null
+  moveCount: 0,
+  winLine: null,    // [lA,lB,lC] for final large win line
+
+  init(){
+    this.board = Array.from({length:9},()=>Array(9).fill(null));
+    this.largeWinner = Array(9).fill(null);
+    this.currentPlayer = 'X';
+    this.bannedLargeIdx = null;
+    this.gameOver = false;
+    this.winner = null;
+    this.moveCount = 0;
+    this.winLine = null;
+  },
+
+  getValidMoves(){
+    if(this.gameOver) return [];
+    const moves = [];
+    for(let li=0;li<9;li++){
+      if(this.largeWinner[li]!==null) continue;
+      if(this.bannedLargeIdx!==null && this.bannedLargeIdx===li) continue;
+      for(let si=0;si<9;si++){
+        if(this.board[li][si]===null) moves.push({li,si});
+      }
+    }
+    return moves;
+  },
+
+  makeMove(li,si){
+    if(this.gameOver) return {ok:false,reason:'game_over'};
+    if(this.board[li][si]!==null) return {ok:false,reason:'occupied'};
+    if(this.largeWinner[li]!==null) return {ok:false,reason:'large_won'};
+    if(this.bannedLargeIdx!==null && this.bannedLargeIdx===li){
+      let hasOther = false;
+      for(let i=0;i<9;i++){
+        if(i===li) continue;
+        if(this.largeWinner[i]!==null) continue;
+        for(let j=0;j<9;j++){
+          if(this.board[i][j]===null){hasOther=true;break;}
+        }
+        if(hasOther) break;
+      }
+      if(hasOther) return {ok:false,reason:'banned'};
+    }
+
+    this.board[li][si] = this.currentPlayer;
+    this.moveCount++;
+
+    const smallRow = Math.floor(si/3), smallCol = si%3;
+    const nextBan = smallRow*3+smallCol;
+
+    const result = checkWin3x3(this.board[li]);
+    if(result){
+      this.largeWinner[li]=result;
+    }else if(isFull3x3(this.board[li])){
+      this.largeWinner[li]='draw';
+    }
+
+    const overall = checkWin3x3(this.largeWinner);
+    if(overall){
+      this.gameOver=true;
+      this.winner=overall;
+      for(const [a,b,c] of WIN_LINES){
+        if(this.largeWinner[a]===overall && this.largeWinner[b]===overall && this.largeWinner[c]===overall){
+          this.winLine=[a,b,c];
+          break;
+        }
+      }
+    }else if(this.largeWinner.every(w=>w!==null)){
+      this.gameOver=true;
+      this.winner='draw';
+    }
+
+    const prevPlayer = this.currentPlayer;
+    this.currentPlayer = this.currentPlayer==='X'?'O':'X';
+
+    if(!this.gameOver){
+      if(this.largeWinner[nextBan]!==null){
+        this.bannedLargeIdx=null;
+      }else{
+        this.bannedLargeIdx=nextBan;
+      }
+      const remaining = this.getValidMoves();
+      if(remaining.length===0){
+        this.gameOver=true;
+        this.winner='draw';
+        this.bannedLargeIdx=null;
+      }
+    }else{
+      this.bannedLargeIdx=null;
+    }
+
+    return {ok:true,prevPlayer};
+  }
+};
+
+// ==================== UI ====================
+const $ = id=>document.getElementById(id);
+const menuScreen = $('menu-screen');
+const gameScreen = $('game-screen');
+const statusBar = $('status-bar');
+const infoStrip = $('info-strip');
+const boardEl = $('board');
+const overlay = $('overlay');
+const overlayTitle = $('overlay-title');
+const overlayMsg = $('overlay-msg');
+
+function renderBoard(){
+  boardEl.innerHTML='';
+  GameState.board.forEach((smallCells,li)=>{
+    const lc = document.createElement('div');
+    lc.className='large-cell';
+    lc.dataset.li = li;
+    const lWinner = GameState.largeWinner[li];
+
+    if(lWinner==='X') lc.classList.add('won-x');
+    else if(lWinner==='O') lc.classList.add('won-o');
+    else if(lWinner==='draw') lc.classList.add('draw');
+
+    if(!GameState.gameOver && GameState.bannedLargeIdx===li && lWinner===null){
+      lc.classList.add('banned');
+    }
+
+    const validMoves = GameState.getValidMoves();
+    const validSmallInLarge = new Set();
+    validMoves.filter(m=>m.li===li).forEach(m=>validSmallInLarge.add(m.si));
+
+    smallCells.forEach((val,si)=>{
+      const sc = document.createElement('div');
+      sc.className='small-cell';
+      sc.dataset.li = li;
+      sc.dataset.si = si;
+
+      if(val){
+        const mark = document.createElement('span');
+        mark.className = 'mark '+(val==='X'?'mark-x':'mark-o');
+        mark.textContent = val==='X'?'✕':'○';
+        sc.appendChild(mark);
+      }else if(!GameState.gameOver && lWinner===null && validSmallInLarge.has(si) && !lc.classList.contains('banned')){
+        sc.classList.add('clickable');
+        sc.addEventListener('click',()=>onCellClick(li,si));
+      }
+
+      lc.appendChild(sc);
+    });
+
+    if(lWinner && lWinner!=='draw'){
+      const ov = document.createElement('div');
+      ov.className = 'large-cell-overlay win-'+(lWinner==='X'?'x':'o');
+      ov.textContent = lWinner==='X'?'✕':'○';
+      lc.appendChild(ov);
+    }
+
+    boardEl.appendChild(lc);
+  });
+
+  if(GameState.gameOver && GameState.winLine){
+    GameState.winLine.forEach(li=>{
+      const lc = boardEl.querySelector(`.large-cell[data-li="${li}"]`);
+      if(lc) lc.style.animation = 'pulse 0.8s infinite alternate';
+    });
+  }
+}
+
+function updateStatus(){
+  const turnDisplay = $('turn-display');
+  const turnDot = $('turn-dot');
+  const mySymbol = $('my-symbol-display');
+
+  if(GameState.gameOver){
+    turnDisplay.textContent = '终局';
+    turnDot.className = 'dot dot-wait';
+  }else{
+    turnDisplay.textContent = GameState.currentPlayer;
+    turnDot.className = 'dot '+(GameState.currentPlayer===mySymbol.textContent?'dot-active':'dot-wait');
+  }
+}
+
+function updateInfo(){
+  if(GameState.gameOver){
+    if(GameState.winner==='draw'){
+      infoStrip.innerHTML = '⚡ 平局！所有大格已被占满';
+    }else{
+      infoStrip.innerHTML = `🏆 <span class="highlight">${GameState.winner==='X'?'✕ 先手':'○ 后手'}</span> 获胜！`;
+    }
+    infoStrip.style.display = 'block';
+    return;
+  }
+  if(GameState.bannedLargeIdx!==null){
+    const r = Math.floor(GameState.bannedLargeIdx/3)+1;
+    const c = GameState.bannedLargeIdx%3+1;
+    infoStrip.innerHTML = `🚫 禁入区域：大九宫格 <span class="warn">(${r},${c})</span> — 上回合落子位置决定了此禁入`;
+    infoStrip.style.display = 'block';
+  }else{
+    infoStrip.innerHTML = `✅ 自由选择：可在任意未归属的大格中落子`;
+    infoStrip.style.display = 'block';
+  }
+}
+
+function showOverlay(){
+  overlay.classList.add('show');
+  if(GameState.winner==='draw'){
+    overlayTitle.innerHTML = '🤝 平局';
+    overlayTitle.className = 'win-text-draw';
+    overlayMsg.textContent = '棋逢对手，胜负未分！';
+  }else{
+    const isX = GameState.winner==='X';
+    overlayTitle.innerHTML = `🏆 ${isX?'✕ 先手':'○ 后手'} 获胜！`;
+    overlayTitle.className = isX?'win-text-x':'win-text-o';
+    overlayMsg.textContent = '大九宫格三连达成，恭喜获胜！';
+  }
+}
+
+function hideOverlay(){
+  overlay.classList.remove('show');
+}
+
+function showToast(msg,success=false){
+  const t = document.createElement('div');
+  t.className = 'toast'+(success?' success':'');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2600);
+}
+
+// ==================== NETWORKING ====================
+let peer = null;
+let conn = null;
+let myRole = null; // 'host'|'guest'
+let mySymbol = null; // 'X'|'O'
+let roomCode = '';
+let moveInProgress = false;
+
+function generateRoomCode(){
+  return String(Math.floor(1000+Math.random()*9000));
+}
+
+function initPeer(id){
+  return new Promise((resolve,reject)=>{
+    const p = new Peer(id,{
+      debug:0
+    });
+    p.on('open',()=>resolve(p));
+    p.on('error',err=>{
+      if(err.type==='unavailable-id'){
+        p.destroy();
+        const altId = id+'-'+Math.floor(Math.random()*100);
+        initPeer(altId).then(resolve).catch(reject);
+      }else{
+        reject(err);
+      }
+    });
+    setTimeout(()=>reject(new Error('timeout')),15000);
+  });
+}
+
+async function createRoom(){
+  const name = $('host-name').value.trim()||'玩家一';
+  roomCode = generateRoomCode();
+  const peerId = 'ttt-host-'+roomCode;
+  try{
+    peer = await initPeer(peerId);
+  }catch(e){
+    showToast('创建房间失败，请刷新重试');
+    return;
+  }
+  myRole = 'host';
+  mySymbol = 'X';
+  $('room-code-display').textContent = roomCode;
+  $('my-symbol-display').textContent = '✕';
+
+  peer.on('connection',(c)=>{
+    if(conn){c.close();return;}
+    conn = c;
+    setupConnection();
+  });
+
+  showToast('房间创建成功！码：'+roomCode,true);
+  enterGame();
+}
+
+async function joinRoom(){
+  const name = $('guest-name').value.trim()||'玩家二';
+  const code = $('room-code-input').value.trim();
+  if(!/^\d{4}$/.test(code)){
+    showToast('请输入4位数字房间码');
+    return;
+  }
+  roomCode = code;
+  try{
+    peer = await initPeer('ttt-guest-'+roomCode+'-'+Math.floor(Math.random()*1000));
+  }catch(e){
+    showToast('连接失败，请检查房间码后重试');
+    return;
+  }
+  myRole = 'guest';
+  mySymbol = 'O';
+  $('room-code-display').textContent = roomCode;
+  $('my-symbol-display').textContent = '○';
+
+  const c = peer.connect('ttt-host-'+roomCode,{reliable:true});
+  conn = c;
+  c.on('open',()=>{
+    setupConnection();
+    showToast('已加入房间！',true);
+    enterGame();
+  });
+  c.on('error',()=>{
+    showToast('无法连接到主机，请检查房间码');
+    cleanup();
+  });
+  setTimeout(()=>{
+    if(!conn || !conn.open){
+      showToast('连接超时，请确认主机已创建房间');
+      cleanup();
+    }
+  },12000);
+}
+
+function setupConnection(){
+  conn.on('data',(data)=>{
+    handleMessage(data);
+  });
+  conn.on('close',()=>{
+    if(!GameState.gameOver){
+      showToast('对方已断开连接');
+      showOverlayForce('对方断开连接','请返回大厅重新开始');
+    }
+  });
+  conn.on('error',()=>{});
+}
+
+function handleMessage(data){
+  switch(data.type){
+    case 'game_state':
+      moveInProgress = false;
+      GameState.board = data.board;
+      GameState.largeWinner = data.largeWinner;
+      GameState.currentPlayer = data.currentPlayer;
+      GameState.bannedLargeIdx = data.bannedLargeIdx;
+      GameState.gameOver = data.gameOver;
+      GameState.winner = data.winner;
+      GameState.moveCount = data.moveCount;
+      GameState.winLine = data.winLine;
+      refreshUI();
+      if(GameState.gameOver) showOverlay();
+      break;
+    case 'move':
+      if(myRole!=='host') return;
+      if(GameState.currentPlayer!=='O') return;
+      {
+        const res = GameState.makeMove(data.li,data.si);
+        if(res.ok){
+          syncGameState();
+          refreshUI();
+          if(GameState.gameOver) showOverlay();
+        }
+      }
+      break;
+    case 'request_state':
+      syncGameState();
+      break;
+    case 'restart':
+      GameState.init();
+      mySymbol = myRole==='host'?'X':'O';
+      GameState.currentPlayer = 'X';
+      $('my-symbol-display').textContent = mySymbol==='X'?'✕':'○';
+      hideOverlay();
+      refreshUI();
+      $('btn-restart').style.display = 'none';
+      break;
+  }
+}
+
+function syncGameState(){
+  if(conn && conn.open){
+    conn.send({
+      type:'game_state',
+      board:GameState.board,
+      largeWinner:GameState.largeWinner,
+      currentPlayer:GameState.currentPlayer,
+      bannedLargeIdx:GameState.bannedLargeIdx,
+      gameOver:GameState.gameOver,
+      winner:GameState.winner,
+      moveCount:GameState.moveCount,
+      winLine:GameState.winLine
+    });
+  }
+}
+
+function onCellClick(li,si){
+  if(moveInProgress) return;
+  if(GameState.gameOver) return;
+  if(GameState.currentPlayer!==mySymbol) return;
+  if(!conn || !conn.open){
+    showToast('连接已断开');
+    return;
+  }
+
+  if(myRole==='host'){
+    const res = GameState.makeMove(li,si);
+    if(!res.ok) return;
+    syncGameState();
+    refreshUI();
+    if(GameState.gameOver) showOverlay();
+  }else{
+    if(GameState.currentPlayer!==mySymbol) return;
+    if(GameState.board[li][si]!==null) return;
+    if(GameState.largeWinner[li]!==null) return;
+    if(GameState.bannedLargeIdx===li && GameState.largeWinner[li]===null) return;
+    moveInProgress = true;
+    conn.send({type:'move',li,si});
+  }
+}
+
+function refreshUI(){
+  renderBoard();
+  updateStatus();
+  updateInfo();
+}
+
+function enterGame(){
+  menuScreen.style.display = 'none';
+  gameScreen.style.display = 'flex';
+  statusBar.style.display = 'flex';
+  infoStrip.style.display = 'block';
+
+  if(myRole==='host'){
+    GameState.init();
+    refreshUI();
+    syncGameState();
+  }else{
+    conn.send({type:'request_state'});
+  }
+}
+
+function cleanup(){
+  if(conn){try{conn.close();}catch(e){}conn=null;}
+  if(peer){try{peer.destroy();}catch(e){}peer=null;}
+}
+
+function backToMenu(){
+  cleanup();
+  hideOverlay();
+  GameState.init();
+  menuScreen.style.display = 'flex';
+  gameScreen.style.display = 'none';
+  statusBar.style.display = 'none';
+  infoStrip.style.display = 'none';
+  $('btn-restart').style.display = 'none';
+  $('room-code-display').textContent = '----';
+  $('my-symbol-display').textContent = '-';
+  boardEl.innerHTML = '';
+}
+
+function requestRestart(){
+  if(conn && conn.open){
+    conn.send({type:'restart'});
+  }
+  GameState.init();
+  mySymbol = myRole==='host'?'X':'O';
+  GameState.currentPlayer = 'X';
+  $('my-symbol-display').textContent = mySymbol==='X'?'✕':'○';
+  hideOverlay();
+  refreshUI();
+  $('btn-restart').style.display = 'none';
+  syncGameState();
+}
+
+function showOverlayForce(title,msg){
+  overlayTitle.textContent = title;
+  overlayMsg.textContent = msg;
+  overlay.classList.add('show');
+}
+
+// ==================== EVENT BINDINGS ====================
+$('btn-create').addEventListener('click',createRoom);
+$('btn-join').addEventListener('click',joinRoom);
+$('btn-leave').addEventListener('click',backToMenu);
+$('btn-play-again').addEventListener('click',()=>{
+  if(conn && conn.open){
+    requestRestart();
+  }else{
+    backToMenu();
+  }
+});
+$('btn-back-menu').addEventListener('click',backToMenu);
+$('btn-restart').addEventListener('click',requestRestart);
+
+$('room-code-input').addEventListener('input',function(){
+  this.value = this.value.replace(/\D/g,'').slice(0,4);
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    if(menuScreen.style.display!=='none'){
+      if(document.activeElement===$('room-code-input') && $('room-code-input').value.length===4){
+        joinRoom();
+      }
+    }
+  }
+});
+
+// ==================== STYLE INJECTION ====================
+const pulseStyle = document.createElement('style');
+pulseStyle.textContent = `
+@keyframes pulse{
+  from{box-shadow:0 0 8px rgba(255,235,59,.4)}
+  to{box-shadow:0 0 20px rgba(255,235,59,.8)}
+}`;
+document.head.appendChild(pulseStyle);
+
+console.log('双层井字棋LAN联机对弈已就绪');
+console.log('规则：小格落子位置→禁入对应大格 | 小格三连得大格 | 大格三连获胜');
+</script>
+</body>
+</html>
