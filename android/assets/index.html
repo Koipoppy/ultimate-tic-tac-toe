@@ -174,6 +174,30 @@ input{user-select:text;-webkit-user-select:text}
 .divider::after{background:linear-gradient(90deg,var(--line),transparent)}
 .hint{color:var(--text-faint);font-size:.78em;text-align:center;max-width:420px;line-height:1.8}
 
+/* ===== 菜单两级导航 ===== */
+.menu-page{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
+.entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:560px}
+.entry-card{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:28px 18px;border-radius:16px;cursor:pointer;
+  background:linear-gradient(180deg,var(--panel),var(--panel-deep));
+  border:1px solid var(--line);
+  box-shadow:0 20px 40px -28px rgba(110,86,50,.45),inset 0 1px 0 rgba(255,255,255,.65);
+  transition:transform .15s,box-shadow .2s,border-color .2s;
+}
+@media(hover:hover){
+  .entry-card:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 26px 50px -26px rgba(110,86,50,.55)}
+}
+.entry-card:active{transform:translateY(-1px)}
+.entry-glyph{width:54px;height:54px;display:grid;place-items:center;border-radius:12px;font-family:var(--font-display);font-size:28px;font-weight:700}
+.entry-glyph.g-gold{color:var(--gold);border:2px solid var(--gold);background:var(--gold-soft)}
+.entry-glyph.g-verm{color:#faf3e3;background:linear-gradient(160deg,#cf5a3a,#a83a22);box-shadow:0 6px 14px -6px rgba(168,58,34,.45),inset 0 1px 0 rgba(255,255,255,.25)}
+.entry-title{font-family:var(--font-display);font-size:1.15em;letter-spacing:.2em;color:var(--text)}
+.entry-desc{font-size:.78em;color:var(--text-faint);letter-spacing:.05em}
+.page-back{align-self:flex-start;color:var(--text-faint);font-size:.85em;cursor:pointer;padding:4px 12px;border-radius:8px;letter-spacing:.1em;transition:color .2s,background .2s}
+@media(hover:hover){.page-back:hover{color:var(--gold);background:var(--gold-soft)}}
+.vs-sep{color:var(--line)}
+
 /* ===== STATUS BAR ===== */
 #status-bar{
   display:none;
@@ -367,6 +391,50 @@ input{user-select:text;-webkit-user-select:text}
   100%{opacity:0;top:0}
 }
 
+/* ===== 底部悬浮岛导航 ===== */
+.tabbar{
+  position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%);
+  z-index:90;display:flex;width:min(92vw,460px);
+  padding:7px 10px;border-radius:999px;
+  background:rgba(250,246,234,.92);
+  border:1px solid var(--line);
+  box-shadow:0 14px 36px -14px rgba(96,74,44,.55),inset 0 1px 0 rgba(255,255,255,.7);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:transparent;cursor:pointer;color:var(--text-faint);padding:3px 0;font-family:var(--font-body)}
+.tab .tab-ico{width:30px;height:30px;display:grid;place-items:center;border-radius:10px;font-family:var(--font-display);font-size:15px;font-weight:700;border:1.5px solid transparent;transition:all .2s}
+.tab .tab-label{font-size:.68em;letter-spacing:.12em}
+.tab.active{color:var(--text-dim)}
+.tab.active .tab-ico{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+
+/* ===== 对局记录 / 我的 页 ===== */
+.page-screen{display:flex;flex-direction:column;align-items:center;gap:16px;padding-bottom:110px}
+.page-title{font-family:var(--font-display);letter-spacing:.2em;color:var(--text);font-size:1.4em;margin-top:10px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;max-width:560px}
+.stat-card{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 6px;border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel-deep));border:1px solid var(--line)}
+.stat-card b{font-size:1.5em;color:var(--text);font-family:var(--font-display)}
+.stat-card span{font-size:.72em;color:var(--text-faint);letter-spacing:.15em}
+.page-card{width:100%;max-width:560px;background:linear-gradient(180deg,var(--panel),var(--panel-deep));border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.page-card-head{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line-soft);font-family:var(--font-display);letter-spacing:.12em;color:var(--text);font-size:.95em}
+.list-empty{padding:28px 16px;text-align:center;color:var(--text-faint);font-size:.85em}
+.dock-mini{border:none;background:transparent;color:var(--text-faint);cursor:pointer;font-family:var(--font-body);font-size:.9em;padding:3px 8px;border-radius:8px;transition:background .2s,color .2s}
+@media(hover:hover){.dock-mini:hover{background:var(--gold-soft);color:var(--gold)}}
+.profile-hero{display:flex;align-items:center;gap:14px;width:100%;max-width:560px;padding:18px;border-radius:16px;background:linear-gradient(180deg,var(--panel),var(--panel-deep));border:1px solid var(--line)}
+.profile-avatar{width:56px;height:56px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(160deg,#cf5a3a,#a83a22);color:#faf3e3;font-family:var(--font-display);font-size:28px;font-weight:700;box-shadow:0 6px 14px -6px rgba(168,58,34,.45),inset 0 1px 0 rgba(255,255,255,.25);flex:none}
+.profile-name{font-family:var(--font-display);font-size:1.15em;letter-spacing:.15em;color:var(--text)}
+.profile-sub{font-size:.75em;color:var(--text-faint);letter-spacing:.1em;margin-top:3px}
+.mode-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;font-size:.88em;color:var(--text-dim);border-bottom:1px solid var(--line-soft)}
+.mode-row:last-child{border-bottom:none}
+.mode-row b{color:var(--text);font-weight:600}
+.list-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:.86em;color:var(--text-dim)}
+.list-item:nth-child(odd){background:rgba(154,116,48,.07)}
+.list-item .r{font-weight:700;flex:none}
+.list-item .r.win{color:var(--gold)}
+.list-item .r.lose{color:var(--o-bright)}
+.list-item .r.draw{color:var(--text-dim)}
+.list-item .r.other{color:var(--text-faint)}
+
 /* ===== RESPONSIVE ===== */
 @media(max-width:560px){
   :root{
@@ -377,6 +445,8 @@ input{user-select:text;-webkit-user-select:text}
   #menu-screen h1{font-size:1.75em;gap:10px}
   .seal{width:36px;height:36px;font-size:20px;border-radius:7px}
   .menu-card{padding:20px;border-radius:14px}
+  .entry-grid{grid-template-columns:1fr}
+  .entry-card{padding:20px 16px}
   #status-bar{padding:10px 12px;border-radius:12px}
   .room-code-badge{font-size:.95em;padding:4px 10px}
   .player-tag{padding:3px 8px;font-size:.8em}
@@ -400,40 +470,69 @@ input{user-select:text;-webkit-user-select:text}
   <div id="menu-screen">
     <h1><span class="seal">弈</span><span>双层井字棋</span></h1>
     <p class="subtitle">Ultimate Tic-Tac-Toe · 双人对弈 · 局域网联机</p>
-    <div class="menu-card">
-      <h3><span>创建房间</span><span class="kicker">执墨 ✕ · 先手</span></h3>
-      <div class="input-group">
-        <label>你的昵称</label>
-        <input type="text" id="host-name" placeholder="玩家一" maxlength="8">
+
+    <!-- 主入口 -->
+    <div class="menu-page" id="menu-hub">
+      <div class="entry-grid">
+        <div class="entry-card" id="entry-online">
+          <div class="entry-glyph g-gold">网</div>
+          <div class="entry-title">在线对弈</div>
+          <div class="entry-desc">创建房间，与好友隔空对局</div>
+        </div>
+        <div class="entry-card" id="entry-offline">
+          <div class="entry-glyph g-verm">弈</div>
+          <div class="entry-title">离线对弈</div>
+          <div class="entry-desc">人机过招 · 同屏双人</div>
+        </div>
       </div>
-      <button class="btn btn-primary" id="btn-create">创建房间</button>
     </div>
-    <div class="divider">或</div>
-    <div class="menu-card">
-      <h3><span>加入房间</span><span class="kicker">执朱 ○ · 后手</span></h3>
-      <div class="input-group">
-        <label>你的昵称</label>
-        <input type="text" id="guest-name" placeholder="玩家二" maxlength="8">
+
+    <!-- 在线对弈 -->
+    <div class="menu-page" id="menu-online" style="display:none">
+      <div class="page-back" data-page="menu-hub">← 返回大厅</div>
+      <div class="menu-card">
+        <h3><span>创建房间</span><span class="kicker">执墨 ✕ · 先手</span></h3>
+        <div class="input-group">
+          <label>你的昵称</label>
+          <input type="text" id="host-name" placeholder="玩家一" maxlength="8">
+        </div>
+        <button class="btn btn-primary" id="btn-create">创建房间</button>
       </div>
-      <div class="input-group">
-        <label>4位房间码</label>
-        <input type="text" id="room-code-input" placeholder="0000" maxlength="4" pattern="[0-9]{4}">
+      <div class="divider">或</div>
+      <div class="menu-card">
+        <h3><span>加入房间</span><span class="kicker">执朱 ○ · 后手</span></h3>
+        <div class="input-group">
+          <label>你的昵称</label>
+          <input type="text" id="guest-name" placeholder="玩家二" maxlength="8">
+        </div>
+        <div class="input-group">
+          <label>4位房间码</label>
+          <input type="text" id="room-code-input" placeholder="0000" maxlength="4" pattern="[0-9]{4}">
+        </div>
+        <button class="btn btn-primary" id="btn-join">加入房间</button>
       </div>
-      <button class="btn btn-primary" id="btn-join">加入房间</button>
+      <p class="hint">创建房间获得 4 位房间码，另一方输入房间码即可联机（首次握手需联网）</p>
     </div>
-    <div class="divider">或</div>
-    <div class="menu-card">
-      <h3><span>人机对弈</span><span class="kicker">单机 · 测试</span></h3>
-      <div class="diff-row" id="diff-row">
-        <button class="diff-pill" data-diff="easy">简单</button>
-        <button class="diff-pill active" data-diff="normal">普通</button>
-        <button class="diff-pill" data-diff="hard">困难</button>
+
+    <!-- 离线对弈 -->
+    <div class="menu-page" id="menu-offline" style="display:none">
+      <div class="page-back" data-page="menu-hub">← 返回大厅</div>
+      <div class="menu-card">
+        <h3><span>人机对弈</span><span class="kicker">你执墨 ✕ · 先手</span></h3>
+        <div class="diff-row" id="diff-row">
+          <button class="diff-pill" data-diff="easy">简单</button>
+          <button class="diff-pill active" data-diff="normal">普通</button>
+          <button class="diff-pill" data-diff="hard">困难</button>
+        </div>
+        <button class="btn btn-primary" id="btn-ai">开始对弈</button>
       </div>
-      <button class="btn btn-primary" id="btn-ai">开始对弈</button>
+      <div class="divider">或</div>
+      <div class="menu-card">
+        <h3><span>双人单机</span><span class="kicker">同屏轮流 · ✕/○</span></h3>
+        <button class="btn btn-primary" id="btn-local">开始对弈</button>
+      </div>
+      <p class="hint">人机对弈随时开局；双人单机与好友同屏轮流执子，重开自动轮换先手</p>
     </div>
-    <p class="hint">
-      两步开局：一方创建房间获得 4 位房间码，另一方输入房间码即可联机对弈
-    </p>
   </div>
 
   <!-- GAME SCREEN -->
@@ -445,7 +544,7 @@ input{user-select:text;-webkit-user-select:text}
       </div>
       <div class="players-info">
         <span class="player-tag" id="host-tag"><span class="tag-x">✕</span><span id="host-name-display">玩家一</span></span>
-        <span style="color:#555">·</span>
+        <span class="vs-sep">·</span>
         <span class="player-tag" id="guest-tag"><span class="tag-o">○</span><span id="guest-name-display">玩家二</span></span>
       </div>
       <div class="player-indicator">
@@ -471,6 +570,53 @@ input{user-select:text;-webkit-user-select:text}
   </div>
 
 </div>
+
+<!-- 对局记录页 -->
+<section class="container page-screen" id="records-screen" style="display:none">
+  <h2 class="page-title">对局记录</h2>
+  <div class="stats-row">
+    <div class="stat-card"><b id="rec-wins">0</b><span>胜</span></div>
+    <div class="stat-card"><b id="rec-losses">0</b><span>负</span></div>
+    <div class="stat-card"><b id="rec-draws">0</b><span>和</span></div>
+    <div class="stat-card"><b id="rec-rate">—</b><span>胜率</span></div>
+  </div>
+  <div class="page-card">
+    <div class="page-card-head">
+      <span>最近对局</span>
+      <button class="dock-mini" id="records-clear">清空</button>
+    </div>
+    <div id="records-list"></div>
+  </div>
+</section>
+
+<!-- 我的页 -->
+<section class="container page-screen" id="profile-screen" style="display:none">
+  <div class="profile-hero">
+    <div class="profile-avatar">弈</div>
+    <div>
+      <div class="profile-name">棋手</div>
+      <div class="profile-sub">本机战绩</div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><b id="prof-wins">0</b><span>胜</span></div>
+    <div class="stat-card"><b id="prof-losses">0</b><span>负</span></div>
+    <div class="stat-card"><b id="prof-draws">0</b><span>和</span></div>
+    <div class="stat-card"><b id="prof-rate">—</b><span>胜率</span></div>
+  </div>
+  <div class="page-card">
+    <div class="page-card-head"><span>各模式战绩</span></div>
+    <div id="prof-modes"></div>
+  </div>
+  <button class="btn btn-secondary btn-sm" id="profile-clear">清空全部数据</button>
+</section>
+
+<!-- 底部悬浮岛导航 -->
+<nav class="tabbar" id="tabbar">
+  <button class="tab active" data-page="lobby"><span class="tab-ico">厅</span><span class="tab-label">大厅</span></button>
+  <button class="tab" data-page="records"><span class="tab-ico">录</span><span class="tab-label">对局记录</span></button>
+  <button class="tab" data-page="profile"><span class="tab-ico">我</span><span class="tab-label">我的</span></button>
+</nav>
 
 <script>
 // ==================== GAME ENGINE ====================
@@ -749,6 +895,10 @@ const boardEl = $('board');
 const overlay = $('overlay');
 const overlayTitle = $('overlay-title');
 const overlayMsg = $('overlay-msg');
+const containerEl = document.querySelector('.container');
+const recordsScreen = $('records-screen');
+const profileScreen = $('profile-screen');
+const tabbarEl = $('tabbar');
 
 function renderBoard(){
   boardEl.innerHTML='';
@@ -834,6 +984,14 @@ function updateStatus(){
     turnDot.className = 'dot dot-wait';
     return;
   }
+  if(gameMode==='local'){
+    turnText.textContent = '轮到 '+(GameState.currentPlayer==='X'?'✕ 先手':'○ 后手')+' 落子';
+    turnText.className = 'turn-mine';
+    turnDot.className = 'dot dot-active';
+    if(GameState.currentPlayer==='X') hostTag.classList.add('glow-x');
+    else guestTag.classList.add('glow-o');
+    return;
+  }
   const mine = GameState.currentPlayer===mySymbol;
   turnText.textContent = mine?'轮到你落子':(gameMode==='ai'?'电脑思考中…':'等待对方落子');
   turnText.className = mine?'turn-mine':'turn-wait';
@@ -857,11 +1015,16 @@ function updateInfo(){
     const r = Math.floor(GameState.bannedLargeIdx/3)+1;
     const c = GameState.bannedLargeIdx%3+1;
     const cell = `大九宫格 <span class="warn">(${r},${c})</span>`;
-    const mine = GameState.currentPlayer===mySymbol;
-    infoStrip.innerHTML = mine
-      ? `${mv}🚫 本轮你禁入 ${cell} — 对面刚在这里落子`
-      : `${mv}⛔ 你刚在这里落子 — 本轮对面禁入 ${cell}`;
-    infoStrip.style.display = 'block';
+    if(gameMode==='local'){
+      infoStrip.innerHTML = `${mv}🚫 本轮禁入 ${cell} — 上一手落子于此`;
+      infoStrip.style.display = 'block';
+    }else{
+      const mine = GameState.currentPlayer===mySymbol;
+      infoStrip.innerHTML = mine
+        ? `${mv}🚫 本轮你禁入 ${cell} — 对面刚在这里落子`
+        : `${mv}⛔ 你刚在这里落子 — 本轮对面禁入 ${cell}`;
+      infoStrip.style.display = 'block';
+    }
   }else{
     infoStrip.innerHTML = `${mv}✅ 自由选择：可在任意未归属的大格中落子`;
     infoStrip.style.display = 'block';
@@ -870,6 +1033,11 @@ function updateInfo(){
 
 function updateNames(){
   let hName,gName,hMe,gMe;
+  if(gameMode==='local'){
+    $('host-name-display').textContent = '玩家一';
+    $('guest-name-display').textContent = '玩家二';
+    return;
+  }
   if(gameMode==='ai'){
     hName='你';
     gName='电脑（'+DIFF_LABEL[aiDifficulty]+'）';
@@ -886,6 +1054,7 @@ function updateNames(){
 
 function showOverlay(){
   overlay.classList.add('show');
+  recordGame();
   if(GameState.winner==='draw'){
     overlayTitle.innerHTML = '🤝 平局';
     overlayTitle.className = 'win-text-draw';
@@ -897,6 +1066,13 @@ function showOverlay(){
     overlayTitle.innerHTML = aiWin?'🤖 电脑获胜！':'🏆 你获胜！';
     overlayTitle.className = aiWin?'win-text-o':'win-text-x';
     overlayMsg.textContent = aiWin?'墨朱再战，卷土重来！':'大九宫格三连达成，恭喜获胜！';
+    return;
+  }
+  if(gameMode==='local'){
+    const xWin = GameState.winner==='X';
+    overlayTitle.innerHTML = xWin?'🏆 玩家一 获胜！':'🏆 玩家二 获胜！';
+    overlayTitle.className = xWin?'win-text-x':'win-text-o';
+    overlayMsg.textContent = '大九宫格三连达成，恭喜获胜！';
     return;
   }
   const isX = GameState.winner==='X';
@@ -928,8 +1104,9 @@ let roomCode = '';
 let moveInProgress = false;
 let moveTimer = null;
 let roundFirst = 'X'; // 每局重开时轮换先手
-let gameMode = 'online'; // 'online' | 'ai'
+let gameMode = 'online'; // 'online' | 'ai' | 'local'
 let aiTimer = null;
+let resultRecorded = false; // 每局只记一次战绩
 
 function generateRoomCode(){
   return String(Math.floor(1000+Math.random()*9000));
@@ -1151,6 +1328,14 @@ function onCellClick(li,si){
     return;
   }
 
+  if(gameMode==='local'){
+    const res = GameState.makeMove(li,si);
+    if(!res.ok) return;
+    refreshUI();
+    if(GameState.gameOver) showOverlay();
+    return;
+  }
+
   if(GameState.currentPlayer!==mySymbol) return;
   if(!conn || !conn.open){
     showToast('连接已断开');
@@ -1192,6 +1377,7 @@ function startNewRound(){
   }
   GameState.init();
   GameState.currentPlayer = roundFirst;
+  resultRecorded = false;
   hideOverlay();
   refreshUI();
 }
@@ -1208,6 +1394,18 @@ function startAiGame(){
   showToast('人机对弈开始，你执墨先手',true);
 }
 
+function startLocalGame(){
+  gameMode = 'local';
+  myRole = 'local';
+  mySymbol = 'X';
+  roundFirst = 'X';
+  myName = '玩家一';
+  oppName = '玩家二';
+  moveInProgress = false;
+  enterGame();
+  showToast('双人单机开始，✕ 先手',true);
+}
+
 function aiTurn(){
   moveInProgress = false;
   clearTimeout(aiTimer);
@@ -1220,15 +1418,21 @@ function aiTurn(){
 }
 
 function enterGame(){
+  tabbarEl.style.display = 'none';
+  recordsScreen.style.display = 'none';
+  profileScreen.style.display = 'none';
+  containerEl.style.display = '';
   menuScreen.style.display = 'none';
   gameScreen.style.display = 'flex';
   statusBar.style.display = 'flex';
   infoStrip.style.display = 'block';
-  $('room-info-box').style.display = gameMode==='ai'?'none':'flex';
+  $('room-info-box').style.display = gameMode==='online'?'flex':'none';
+  resultRecorded = false;
   updateNames();
 
-  if(gameMode==='ai'){
+  if(gameMode!=='online'){
     GameState.init();
+    GameState.currentPlayer = roundFirst;
     refreshUI();
     return;
   }
@@ -1256,19 +1460,44 @@ function backToMenu(){
   roundFirst = 'X';
   gameMode = 'online';
   moveInProgress = false;
-  menuScreen.style.display = 'flex';
-  gameScreen.style.display = 'none';
-  statusBar.style.display = 'none';
-  infoStrip.style.display = 'none';
+  resultRecorded = false;
   oppName = '';
   $('room-code-display').textContent = '----';
   boardEl.innerHTML = '';
+  switchTab('lobby');
+  showMenuPage('menu-hub');
+}
+
+function switchTab(name){
+  tabbarEl.style.display = 'flex';
+  document.querySelectorAll('#tabbar .tab').forEach(t=>t.classList.toggle('active', t.dataset.page===name));
+  if(name==='lobby'){
+    containerEl.style.display = '';
+    recordsScreen.style.display = 'none';
+    profileScreen.style.display = 'none';
+  }else{
+    containerEl.style.display = 'none';
+    recordsScreen.style.display = name==='records' ? 'flex' : 'none';
+    profileScreen.style.display = name==='profile' ? 'flex' : 'none';
+    if(name==='records') renderRecordsPage();
+    if(name==='profile') renderProfilePage();
+  }
+}
+
+function showMenuPage(id){
+  document.querySelectorAll('#menu-screen .menu-page').forEach(p=>{
+    p.style.display = p.id===id?'flex':'none';
+  });
 }
 
 function requestRestart(){
   if(gameMode==='ai'){
     roundFirst = 'X';
     startNewRound();
+    return;
+  }
+  if(gameMode==='local'){
+    startNewRound(); // 双人单机：重开自动轮换先手
     return;
   }
   if(conn && conn.open){
@@ -1289,10 +1518,112 @@ function showOverlayForce(title,msg){
   overlay.classList.add('show');
 }
 
+// ==================== 战绩与对局记录 ====================
+const STATS_KEY = 'ttt_stats_v1';
+
+function loadStats(){
+  try{
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if(s && typeof s.wins==='number') return s;
+  }catch(e){}
+  return {wins:0,losses:0,draws:0,games:[]};
+}
+
+function saveStats(s){
+  try{ localStorage.setItem(STATS_KEY, JSON.stringify(s)); }catch(e){}
+}
+
+function modeLabel(m){
+  return m==='ai'?'人机':(m==='local'?'双人单机':'在线');
+}
+
+// 终局时按当前玩家视角记录一局（双人单机只进记录，不计个人胜负）
+function recordGame(){
+  if(resultRecorded) return;
+  resultRecorded = true;
+  const s = loadStats();
+  let result = null, opponent = '', detail = '';
+  if(gameMode==='ai'){
+    opponent = '电脑（'+DIFF_LABEL[aiDifficulty]+'）';
+    result = GameState.winner==='X' ? 'win' : (GameState.winner==='O' ? 'loss' : 'draw');
+  }else if(gameMode==='online'){
+    opponent = oppName || '对手';
+    result = GameState.winner==='draw' ? 'draw' : (GameState.winner===mySymbol ? 'win' : 'loss');
+  }else if(gameMode==='local'){
+    opponent = '同屏双人';
+    detail = GameState.winner==='draw' ? '平局' : (GameState.winner==='X' ? '玩家一 胜' : '玩家二 胜');
+  }
+  if(result==='win') s.wins++;
+  else if(result==='loss') s.losses++;
+  else if(result==='draw') s.draws++;
+  s.games.unshift({t:Date.now(), mode:gameMode, opponent, result, detail, moves:GameState.moveCount});
+  if(s.games.length > 50) s.games.length = 50;
+  saveStats(s);
+}
+
+function renderGameList(el){
+  const s = loadStats();
+  if(!s.games.length){
+    el.innerHTML = '<div class="list-empty">还没有对局记录，来一局吧</div>';
+    return;
+  }
+  const pad = n=>String(n).padStart(2,'0');
+  el.innerHTML = s.games.map(g=>{
+    const d = new Date(g.t);
+    const time = `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const rLabel = g.detail || (g.result==='win'?'胜':(g.result==='loss'?'负':(g.result==='draw'?'和':'—')));
+    const rCls = g.result || 'other';
+    return `<div class="list-item"><span>${time}</span><span>${modeLabel(g.mode)} · vs ${g.opponent} · ${g.moves} 手</span><span class="r ${rCls}">${rLabel}</span></div>`;
+  }).join('');
+}
+
+function renderRecordsPage(){
+  const s = loadStats();
+  const total = s.wins+s.losses+s.draws;
+  $('rec-wins').textContent = s.wins;
+  $('rec-losses').textContent = s.losses;
+  $('rec-draws').textContent = s.draws;
+  $('rec-rate').textContent = total ? Math.round(s.wins/total*100)+'%' : '—';
+  renderGameList($('records-list'));
+}
+
+function renderProfilePage(){
+  const s = loadStats();
+  const total = s.wins+s.losses+s.draws;
+  $('prof-wins').textContent = s.wins;
+  $('prof-losses').textContent = s.losses;
+  $('prof-draws').textContent = s.draws;
+  $('prof-rate').textContent = total ? Math.round(s.wins/total*100)+'%' : '—';
+  const by = {
+    online:{label:'在线对弈',w:0,l:0,d:0,n:0},
+    ai:{label:'人机对弈',w:0,l:0,d:0,n:0},
+    local:{label:'双人单机',w:0,l:0,d:0,n:0}
+  };
+  s.games.forEach(g=>{
+    const b = by[g.mode];
+    if(!b) return;
+    b.n++;
+    if(g.result==='win') b.w++;
+    else if(g.result==='loss') b.l++;
+    else if(g.result==='draw') b.d++;
+  });
+  $('prof-modes').innerHTML = Object.keys(by).map(k=>{
+    const b = by[k];
+    const detail = k==='local' ? `${b.n} 局` : `${b.n} 局 · ${b.w} 胜 ${b.l} 负 ${b.d} 和`;
+    return `<div class="mode-row"><span>${b.label}</span><b>${detail}</b></div>`;
+  }).join('');
+}
+
 // ==================== EVENT BINDINGS ====================
 $('btn-create').addEventListener('click',createRoom);
 $('btn-join').addEventListener('click',joinRoom);
 $('btn-ai').addEventListener('click',startAiGame);
+$('btn-local').addEventListener('click',startLocalGame);
+$('entry-online').addEventListener('click',()=>showMenuPage('menu-online'));
+$('entry-offline').addEventListener('click',()=>showMenuPage('menu-offline'));
+document.querySelectorAll('.page-back').forEach(b=>{
+  b.addEventListener('click',()=>showMenuPage(b.dataset.page));
+});
 document.querySelectorAll('.diff-pill').forEach(p=>{
   p.addEventListener('click',()=>{
     document.querySelectorAll('.diff-pill').forEach(x=>x.classList.remove('active'));
@@ -1301,8 +1632,23 @@ document.querySelectorAll('.diff-pill').forEach(p=>{
   });
 });
 $('btn-leave').addEventListener('click',backToMenu);
+document.querySelectorAll('#tabbar .tab').forEach(t=>{
+  t.addEventListener('click',()=>switchTab(t.dataset.page));
+});
+$('records-clear').addEventListener('click',()=>{
+  if(confirm('确定清空全部战绩与对局记录？')){
+    localStorage.removeItem(STATS_KEY);
+    renderRecordsPage();
+  }
+});
+$('profile-clear').addEventListener('click',()=>{
+  if(confirm('确定清空全部战绩与对局记录？')){
+    localStorage.removeItem(STATS_KEY);
+    renderProfilePage();
+  }
+});
 $('btn-play-again').addEventListener('click',()=>{
-  if(gameMode==='ai' || (conn && conn.open)){
+  if(gameMode==='ai' || gameMode==='local' || (conn && conn.open)){
     requestRestart();
   }else{
     backToMenu();
@@ -1334,7 +1680,7 @@ pulseStyle.textContent = `
 document.head.appendChild(pulseStyle);
 
 console.log('双层井字棋LAN联机对弈已就绪');
-console.log('规则：对面落在哪个大格，你下一轮就禁入哪个大格 | 小格三连得大格 | 大格三连获胜 | 重开轮换先手');
+console.log('规则：对面落在哪个大格，你下一轮就禁入哪个大格 | 小格三连得大格 | 大格三连获胜 | 双人单机重开轮换先手');
 </script>
 </body>
 </html>
