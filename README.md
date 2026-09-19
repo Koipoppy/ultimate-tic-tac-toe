@@ -81,6 +81,15 @@ python -m http.server 8080
 
 在大厅选择「人机对弈」卡片与难度（简单 / 普通 / 困难）即可单机开局。你执墨 ✕ 先手，电脑执朱 ○。
 
+### 方式四：安卓安装包
+
+`android/dist/双层井字棋-v1.0.apk` 是打包好的安卓应用（WebView 壳 + 内嵌游戏）：
+
+1. 把 APK 传到手机（微信/数据线/局域网均可），点击安装，允许「安装未知来源应用」
+2. 桌面出现「双层井字棋」图标，打开即玩
+3. **人机对弈完全离线可玩**（PeerJS 已内联进安装包）；**LAN 联机**的首次握手需联网（PeerJS 云信令），建立连接后为 P2P 直连
+4. 系统要求 Android 5.0（API 21）及以上
+
 ---
 
 ## 🛠 技术架构
@@ -91,6 +100,7 @@ python -m http.server 8080
 | **信令服务** | PeerJS Cloud Server（仅握手阶段） |
 | **游戏逻辑** | 纯 JavaScript 状态机 |
 | **电脑 AI** | 评估函数 + 双层搜索（简单=随机，普通=启发式评估，困难=minimax 思路两层搜索） |
+| **安卓封装** | WebView 单 Activity 壳，javac→d8→aapt2→zipalign→apksigner 手工构建，见 `android/build.sh` |
 | **界面渲染** | 原生 DOM + CSS3 动画 |
 | **部署方式** | 单 HTML 文件，零依赖安装 |
 
@@ -127,6 +137,8 @@ Host (✕)                         Guest (○)
 ```
 双层井字棋LAN联机对弈/
 ├── index.html      # 完整游戏（HTML+CSS+JS 一体化）
+├── android/        # 安卓壳工程（清单/Activity/图标/离线资产/构建脚本）
+│   └── dist/       # 签名好的 APK 产物
 └── README.md       # 项目说明文档
 ```
 
@@ -200,6 +212,13 @@ Host (✕)                         Guest (○)
 - 规则变更：禁入目标从「小格位置 (r,c) 坐标映射的大格」改为「**上一手落子所在的大格**」——即"你下在哪个大格，对面下一轮就禁入哪个大格"，遮罩始终跟随对面的落子，不再落到自己地盘上
 - 信息条按视角明确标注禁入对象：轮到你时显示「本轮你禁入 — 对面刚在这里落子」，对面思考时显示「你刚在这里落子 — 本轮对面禁入」
 - 引擎行为经全套单测回归：原 17 手确定性胜局在新规则下依然成立，3000 局随机对局不变量、AI 三档自对弈与难度梯度全部通过
+
+### 迭代 7：安卓版本
+
+- 新增 `android/` WebView 壳工程：单 Activity 全屏加载内嵌游戏，横竖屏切换不重载（`configChanges`），AI 模式完全离线可玩
+- 安卓资产内联 PeerJS（1.5.2），APK 不依赖 CDN；LAN 联机的首次握手仍需联网
+- 构建链：`javac → d8 → aapt2 → zipalign → apksigner`，一条 `bash android/build.sh` 产出签名 APK（debug.keystore 随仓库分发，重复构建签名一致、可覆盖安装）
+- 产物：`android/dist/双层井字棋-v1.0.apk`（minSdk 21 / targetSdk 29，Android 5.0+）
 
 ---
 
