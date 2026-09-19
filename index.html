@@ -2,276 +2,383 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f2ecdd">
 <title>双层井字棋 - LAN联机对弈</title>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:'Segoe UI','Microsoft YaHei',sans-serif;
-  background:#0a0a1a;
-  color:#e0e0e0;
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  user-select:none;
-  background:radial-gradient(ellipse at center,#1a1a3a 0%,#0a0a1a 70%);
-}
-.container{width:100%;max-width:720px;padding:20px}
 
-/* ===== MENU SCREEN ===== */
-#menu-screen{display:flex;flex-direction:column;align-items:center;gap:24px}
-#menu-screen h1{
-  font-size:2.2em;
-  background:linear-gradient(135deg,#00e5ff,#7c4dff);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-  text-align:center;
-  text-shadow:none;
+:root{
+  --bg:#f2ecdd;
+  --panel:#faf6ea;
+  --panel-deep:#f3edda;
+  --line:#d8cdb2;
+  --line-soft:#e4dcc4;
+  --ink:#332a1f;
+  --paper:#f3ecd8;
+  --paper-hi:#fdf9ee;
+  --x:#2e281e;
+  --o:#bf4a2f;
+  --o-bright:#b03e24;
+  --gold:#9a7430;
+  --gold-soft:rgba(154,116,48,.15);
+  --text:#35301f;
+  --text-dim:#7d7258;
+  --text-faint:#a89c7e;
+  --font-display:Georgia,'Songti SC','STSong','STZhongsong','SimSun',serif;
+  --font-body:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;
+  --board-size:min(680px,92vw,calc(100vh - 215px));
+  --board-size:min(680px,92vw,calc(100dvh - 215px));
 }
-#menu-screen .subtitle{color:#888;font-size:0.95em;text-align:center}
-.menu-card{
-  background:#12122a;
-  border:1px solid #2a2a4a;
-  border-radius:16px;
-  padding:28px;
-  width:100%;
-  max-width:400px;
+
+html{touch-action:manipulation}
+body{
+  font-family:var(--font-body);
+  color:var(--text);
+  min-height:100vh;
+  min-height:100dvh;
   display:flex;
-  flex-direction:column;
-  gap:16px;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  background:var(--bg);
+  background-image:
+    radial-gradient(1100px 700px at 50% -10%,rgba(255,252,242,.85),transparent 60%),
+    radial-gradient(140% 100% at 50% 112%,rgba(184,166,124,.30),transparent 55%);
+  background-attachment:fixed;
 }
-.menu-card h3{color:#ccc;font-size:1em;text-align:center}
-.input-group{display:flex;flex-direction:column;gap:6px}
-.input-group label{font-size:0.85em;color:#aaa}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+}
+input{user-select:text;-webkit-user-select:text}
+.container{width:100%;max-width:760px;padding:28px 20px;margin:auto;position:relative;z-index:1}
+
+/* ===== MENU ===== */
+#menu-screen{display:flex;flex-direction:column;align-items:center;gap:22px}
+#menu-screen h1{
+  font-family:var(--font-display);
+  font-size:2.4em;
+  font-weight:700;
+  letter-spacing:.12em;
+  color:var(--text);
+  display:flex;align-items:center;gap:14px;
+  text-align:center;
+}
+.seal{
+  display:inline-grid;place-items:center;
+  width:46px;height:46px;flex:none;
+  background:linear-gradient(160deg,#cf5a3a,#a83a22);
+  color:#faf3e3;
+  font-size:26px;
+  border-radius:9px;
+  transform:rotate(-4deg);
+  box-shadow:0 6px 14px -6px rgba(168,58,34,.45),inset 0 1px 0 rgba(255,255,255,.25);
+}
+#menu-screen .subtitle{
+  color:var(--text-dim);
+  font-size:.8em;
+  letter-spacing:.28em;
+  text-align:center;
+}
+.menu-card{
+  background:linear-gradient(180deg,var(--panel),var(--panel-deep));
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:26px;
+  width:100%;
+  max-width:420px;
+  display:flex;flex-direction:column;gap:16px;
+  box-shadow:0 20px 42px -28px rgba(110,86,50,.45),inset 0 1px 0 rgba(255,255,255,.65);
+}
+.menu-card h3{
+  display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  font-family:var(--font-display);
+  color:var(--text);
+  font-size:1.05em;
+  letter-spacing:.14em;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--line-soft);
+}
+.menu-card h3 .kicker{font-family:var(--font-body);font-size:.72em;letter-spacing:.1em;color:var(--text-faint)}
+.input-group{display:flex;flex-direction:column;gap:7px}
+.input-group label{font-size:.8em;color:var(--text-dim);letter-spacing:.12em}
 .input-group input{
   padding:12px 16px;
   border-radius:10px;
-  border:1px solid #3a3a5a;
-  background:#0a0a20;
-  color:#fff;
-  font-size:1.05em;
+  border:1px solid #d0c5a8;
+  background:#fffdf6;
+  color:var(--text);
+  font-size:1.02em;
   text-align:center;
   letter-spacing:2px;
   outline:none;
-  transition:border .2s;
+  transition:border-color .2s,box-shadow .2s;
 }
-.input-group input:focus{border-color:#7c4dff}
+.input-group input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
 .btn{
-  padding:14px;
-  border-radius:10px;
-  border:none;
-  font-size:1em;
+  padding:13px 18px;
+  border-radius:11px;
+  border:1px solid transparent;
+  font-size:.95em;
   font-weight:600;
+  font-family:var(--font-body);
   cursor:pointer;
-  transition:all .2s;
-  letter-spacing:1px;
+  transition:transform .15s,box-shadow .2s,filter .2s,border-color .2s,color .2s;
+  letter-spacing:.18em;
 }
 .btn-primary{
-  background:linear-gradient(135deg,#00e5ff,#7c4dff);
-  color:#fff;
+  background:linear-gradient(180deg,#cd5638,#a93a23);
+  border-color:#8a2f1c;
+  color:#faf3e3;
+  box-shadow:0 10px 20px -10px rgba(169,58,35,.5),inset 0 1px 0 rgba(255,255,255,.2);
 }
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(124,77,255,.4)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-secondary{
-  background:transparent;
-  border:1px solid #3a3a5a;
-  color:#ccc;
+.btn-secondary{background:transparent;border-color:#cfc3a4;color:var(--text-dim)}
+@media(hover:hover){
+  .btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .btn-secondary:hover{border-color:var(--gold);color:var(--text)}
 }
-.btn-secondary:hover{border-color:#7c4dff;color:#fff}
-.btn-sm{padding:10px 20px;font-size:.85em}
-.divider{display:flex;align-items:center;gap:12px;color:#555;font-size:.85em}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:#2a2a4a}
+.btn-primary:active{transform:translateY(0);filter:brightness(.95)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-sm{padding:9px 16px;font-size:.82em}
+.diff-row{display:flex;gap:8px}
+.diff-pill{
+  flex:1;padding:9px 0;border-radius:9px;
+  border:1px solid #d0c5a8;
+  background:#fffdf6;
+  color:var(--text-dim);
+  font-family:var(--font-body);
+  font-size:.85em;cursor:pointer;
+  letter-spacing:.15em;
+  transition:border-color .2s,color .2s,background .2s;
+}
+.diff-pill.active{border-color:var(--gold);color:var(--gold);background:var(--gold-soft)}
+.divider{display:flex;align-items:center;gap:14px;color:var(--text-faint);font-size:.8em;letter-spacing:.3em}
+.divider::before,.divider::after{content:'';flex:1;height:1px}
+.divider::before{background:linear-gradient(90deg,transparent,var(--line))}
+.divider::after{background:linear-gradient(90deg,var(--line),transparent)}
+.hint{color:var(--text-faint);font-size:.78em;text-align:center;max-width:420px;line-height:1.8}
 
 /* ===== STATUS BAR ===== */
 #status-bar{
   display:none;
   justify-content:space-between;
   align-items:center;
-  padding:12px 20px;
-  background:#12122a;
-  border:1px solid #2a2a4a;
-  border-radius:12px;
-  margin-bottom:20px;
+  gap:12px;
+  padding:12px 16px;
+  background:linear-gradient(180deg,var(--panel),var(--panel-deep));
+  border:1px solid var(--line);
+  border-radius:14px;
+  margin-bottom:16px;
   flex-wrap:wrap;
-  gap:10px;
+  box-shadow:0 16px 34px -26px rgba(110,86,50,.5);
 }
-#status-bar .room-info{display:flex;align-items:center;gap:12px}
+#status-bar .room-info{display:flex;align-items:center;gap:10px}
+#status-bar .room-label{color:var(--text-faint);font-size:.75em;letter-spacing:.2em}
 #status-bar .room-code-badge{
-  background:#1a1a3a;
-  padding:6px 14px;
+  background:var(--panel-deep);
+  padding:5px 12px;
   border-radius:8px;
-  font-family:'Consolas',monospace;
-  font-size:1.1em;
-  color:#00e5ff;
-  border:1px solid #2a2a4a;
-  letter-spacing:3px;
+  font-family:Consolas,monospace;
+  font-size:1.05em;
+  color:var(--gold);
+  border:1px solid var(--line);
+  letter-spacing:4px;
 }
-#status-bar .player-indicator{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-weight:600;
+.players-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.player-tag{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 11px;border-radius:9px;
+  background:var(--panel-deep);
+  border:1px solid #ddd2b6;
+  font-size:.85em;color:var(--text-dim);
+  transition:border-color .3s,box-shadow .3s,color .3s;
 }
-#status-bar .dot{
-  width:12px;height:12px;
-  border-radius:50%;
-  display:inline-block;
-}
-.dot-active{background:#00e5ff;box-shadow:0 0 10px #00e5ff}
-.dot-wait{background:#555}
+.player-tag .tag-x{color:var(--x);font-weight:700}
+.player-tag .tag-o{color:var(--o);font-weight:700}
+.player-tag.glow-x{border-color:var(--gold);box-shadow:0 0 10px rgba(154,116,48,.35);color:var(--text)}
+.player-tag.glow-o{border-color:var(--o);box-shadow:0 0 10px rgba(191,74,47,.35);color:var(--text)}
+.player-indicator{display:flex;align-items:center;gap:9px}
+#turn-text{font-weight:600;font-size:.9em}
+#turn-text.turn-mine{color:var(--gold)}
+#turn-text.turn-wait{color:var(--text-faint);font-weight:400}
+#turn-text.turn-over{color:var(--gold)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.dot-active{background:var(--gold);box-shadow:0 0 8px rgba(154,116,48,.7)}
+.dot-wait{background:#cfc4a6}
 
-/* ===== GAME SCREEN ===== */
-#game-screen{display:none;flex-direction:column;align-items:center;gap:20px}
-
-/* ===== INFO STRIP ===== */
+/* ===== GAME ===== */
+#game-screen{display:none;flex-direction:column;align-items:center}
 .info-strip{
   display:none;
   text-align:center;
-  padding:10px 20px;
-  background:#12122a;
-  border:1px solid #2a2a4a;
-  border-radius:10px;
-  font-size:.9em;
-  color:#aaa;
-  min-height:40px;
+  padding:9px 18px;
+  background:linear-gradient(180deg,var(--panel),var(--panel-deep));
+  border:1px solid var(--line);
+  border-radius:11px;
+  font-size:.85em;
+  color:var(--text-dim);
+  min-height:38px;
+  margin-bottom:16px;
 }
-.info-strip .highlight{color:#ffeb3b;font-weight:600}
-.info-strip .warn{color:#ff5252}
+.info-strip .highlight{color:var(--gold);font-weight:600}
+.info-strip .warn{color:var(--o-bright);font-weight:600}
 
 /* ===== BOARD ===== */
 .board-wrapper{position:relative}
 #board{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:6px;
-  background:#1a1a3a;
-  padding:6px;
-  border-radius:14px;
-  border:2px solid #2a2a4a;
+  gap:9px;
+  width:var(--board-size);
+  padding:9px;
+  border-radius:18px;
+  border:1px solid #3a3223;
+  background:linear-gradient(155deg,#2c2618,#221d12 60%,#1c1810);
+  box-shadow:0 30px 60px -30px rgba(96,74,44,.55),inset 0 1px 0 rgba(255,255,255,.08),inset 0 0 0 1px rgba(0,0,0,.4);
 }
 .large-cell{
+  position:relative;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:2px;
-  background:#0d0d25;
-  padding:3px;
-  border-radius:8px;
-  border:2px solid #252550;
-  transition:border-color .3s,box-shadow .3s;
+  gap:3px;
+  background:#191510;
+  padding:4px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.4);
+  transition:border-color .3s,opacity .3s,background .3s;
 }
-.large-cell.won-x{border-color:#00e5ff;box-shadow:0 0 15px rgba(0,229,255,.3)}
-.large-cell.won-o{border-color:#ff5252;box-shadow:0 0 15px rgba(255,82,82,.3)}
-.large-cell.draw{border-color:#666;opacity:.7}
-.large-cell.target{border-color:#ffeb3b;box-shadow:0 0 12px rgba(255,235,59,.25)}
-.large-cell.banned{opacity:.4;border-color:#3a1020;background:#1a0a15}
+.large-cell.won-x{background:linear-gradient(160deg,#322a1d,#241e14);border-color:#55492f}
+.large-cell.won-o{background:linear-gradient(160deg,#3a2418,#271a12);border-color:#6e3a26}
+.large-cell.draw{opacity:.55;border-color:rgba(0,0,0,.3)}
+.large-cell.draw .small-cell{filter:grayscale(.7) brightness(.85)}
+.large-cell.banned{
+  opacity:.5;
+  border-color:#5f2d1c;
+  background-image:repeating-linear-gradient(45deg,rgba(191,74,47,.14) 0 5px,transparent 5px 11px);
+}
 .small-cell{
   aspect-ratio:1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#16163a;
-  border-radius:5px;
-  cursor:default;
-  transition:background .2s,transform .15s;
-  position:relative;
-  min-width:40px;
-  min-height:40px;
-}
-.small-cell.clickable{
-  cursor:pointer;
-  background:#1e1e48;
-}
-.small-cell.clickable:hover{
-  background:#2a2a5a;
-  transform:scale(1.06);
-  z-index:2;
-}
-.small-cell .mark{
-  font-size:1.5em;
-  font-weight:700;
-  transition:all .2s;
-}
-.small-cell .mark-x{color:#00e5ff;text-shadow:0 0 10px rgba(0,229,255,.5)}
-.small-cell .mark-o{color:#ff5252;text-shadow:0 0 10px rgba(255,82,82,.5)}
-.large-cell.banned .small-cell.clickable{background:#1a0a15;cursor:default}
-.large-cell.banned .small-cell.clickable:hover{background:#1a0a15;transform:none}
-.large-cell-overlay{
-  position:absolute;
-  top:0;left:0;right:0;bottom:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,var(--paper-hi),var(--paper));
   border-radius:6px;
-  pointer-events:none;
-  font-size:2.5em;
-  font-weight:900;
-  z-index:5;
+  cursor:default;
+  transition:filter .15s,transform .15s,box-shadow .15s;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 3px rgba(125,102,63,.3);
 }
-.large-cell{position:relative}
-.large-cell-overlay.win-x{color:rgba(0,229,255,.7)}
-.large-cell-overlay.win-o{color:rgba(255,82,82,.7)}
+.small-cell.clickable{cursor:pointer}
+@media(hover:hover){
+  .small-cell.clickable:hover{
+    background:var(--paper-hi);
+    filter:brightness(1.04);
+    transform:translateY(-1px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 3px rgba(125,102,63,.3),0 6px 12px -6px rgba(96,74,44,.45);
+    z-index:2;
+  }
+}
+.small-cell.clickable:active{transform:scale(.94)}
+.small-cell.last-move{box-shadow:inset 0 0 0 2px var(--gold),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 3px rgba(125,102,63,.3)}
+.mark{width:70%;height:70%;display:block;filter:drop-shadow(0 1px 1px rgba(70,50,20,.35))}
+.mark svg{width:100%;height:100%;display:block}
+.mark svg path,.mark svg circle{fill:none;stroke-width:5.5;stroke-linecap:round}
+.mark-x svg path{stroke:var(--x)}
+.mark-o svg circle{stroke:var(--o)}
+.mark.pop{animation:pop .3s cubic-bezier(.2,.9,.3,1.25)}
+@keyframes pop{0%{transform:scale(.35);opacity:0}100%{transform:scale(1);opacity:1}}
+.large-cell.banned .small-cell.clickable{cursor:default}
+@media(hover:hover){
+  .large-cell.banned .small-cell.clickable:hover{
+    transform:none;filter:none;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 3px rgba(125,102,63,.3);
+  }
+}
+.large-cell-overlay{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:10px;
+  pointer-events:none;
+  z-index:5;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));
+}
+.large-cell-overlay svg{width:58%;height:58%}
+.large-cell-overlay svg path,.large-cell-overlay svg circle{fill:none;stroke-width:5;stroke-linecap:round}
+.large-cell-overlay.win-x svg path{stroke:rgba(240,231,208,.92)}
+.large-cell-overlay.win-o svg circle{stroke:rgba(222,116,88,.95)}
 
-/* ===== GAME OVER OVERLAY ===== */
+/* ===== OVERLAY ===== */
 #overlay{
-  display:none;
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,.75);
-  z-index:100;
-  justify-content:center;
-  align-items:center;
+  display:none;position:fixed;inset:0;
+  background:rgba(70,58,34,.38);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  z-index:100;justify-content:center;align-items:center;
 }
 #overlay.show{display:flex}
 .overlay-card{
-  background:#12122a;
-  border:2px solid #2a2a4a;
+  background:linear-gradient(180deg,#fbf7ec,#f4eedd);
+  border:1px solid var(--line);
   border-radius:20px;
   padding:36px;
   text-align:center;
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-  max-width:360px;
-  width:90%;
+  display:flex;flex-direction:column;gap:20px;
+  max-width:360px;width:88%;
+  box-shadow:0 34px 70px -30px rgba(96,74,44,.55),inset 0 1px 0 rgba(255,255,255,.7);
 }
-.overlay-card h2{font-size:1.8em}
-.overlay-card .win-text-x{color:#00e5ff}
-.overlay-card .win-text-o{color:#ff5252}
-.overlay-card .win-text-draw{color:#ffeb3b}
+.overlay-card h2{font-family:var(--font-display);font-size:1.7em;letter-spacing:.08em}
+.overlay-card p{color:var(--text-dim);font-size:.9em;line-height:1.6}
+.overlay-card .win-text-x{color:var(--ink)}
+.overlay-card .win-text-o{color:var(--o-bright)}
+.overlay-card .win-text-draw{color:var(--gold)}
 
 /* ===== TOAST ===== */
 .toast{
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#ff5252;
-  color:#fff;
-  padding:12px 24px;
-  border-radius:10px;
+  position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  background:#fffdf6;
+  border:1px solid var(--o);
+  color:var(--text);
+  padding:11px 22px;
+  border-radius:11px;
   z-index:200;
-  font-weight:600;
+  font-weight:600;font-size:.9em;
+  box-shadow:0 16px 36px -14px rgba(96,74,44,.5);
   animation:fadeInOut 2.5s forwards;
   pointer-events:none;
 }
-.toast.success{background:#4caf50}
+.toast.success{border-color:var(--gold)}
 @keyframes fadeInOut{
   0%{opacity:0;top:0}
-  15%{opacity:1;top:20px}
-  75%{opacity:1;top:20px}
+  15%{opacity:1;top:18px}
+  75%{opacity:1;top:18px}
   100%{opacity:0;top:0}
 }
 
 /* ===== RESPONSIVE ===== */
-@media(max-width:500px){
+@media(max-width:560px){
+  :root{
+    --board-size:min(94vw,calc(100vh - 285px));
+    --board-size:min(94vw,calc(100dvh - 285px));
+  }
+  .container{padding:20px 12px 24px}
+  #menu-screen h1{font-size:1.75em;gap:10px}
+  .seal{width:36px;height:36px;font-size:20px;border-radius:7px}
+  .menu-card{padding:20px;border-radius:14px}
+  #status-bar{padding:10px 12px;border-radius:12px}
+  .room-code-badge{font-size:.95em;padding:4px 10px}
+  .player-tag{padding:3px 8px;font-size:.8em}
+  .info-strip{font-size:.8em;padding:8px 12px}
+  .overlay-card{padding:26px 20px}
+  .overlay-card h2{font-size:1.45em}
+  .large-cell-overlay svg{width:66%}
+}
+@media(max-height:520px) and (orientation:landscape){
+  :root{--board-size:min(60vh,calc(100vh - 130px))}
   .container{padding:10px}
-  #menu-screen h1{font-size:1.6em}
-  .small-cell .mark{font-size:1.2em}
-  .small-cell{min-width:32px;min-height:32px}
-  .large-cell-overlay{font-size:1.8em}
+  #status-bar{margin-bottom:8px;padding:8px 12px}
+  .info-strip{margin-bottom:8px;min-height:32px}
 }
 </style>
 </head>
@@ -280,10 +387,10 @@ body{
 
   <!-- MENU SCREEN -->
   <div id="menu-screen">
-    <h1>⛋ 双层井字棋</h1>
-    <p class="subtitle">Ultimate Tic-Tac-Toe · LAN联机对弈</p>
+    <h1><span class="seal">弈</span><span>双层井字棋</span></h1>
+    <p class="subtitle">Ultimate Tic-Tac-Toe · 双人对弈 · 局域网联机</p>
     <div class="menu-card">
-      <h3>🎮 创建房间</h3>
+      <h3><span>创建房间</span><span class="kicker">执墨 ✕ · 先手</span></h3>
       <div class="input-group">
         <label>你的昵称</label>
         <input type="text" id="host-name" placeholder="玩家一" maxlength="8">
@@ -292,7 +399,7 @@ body{
     </div>
     <div class="divider">或</div>
     <div class="menu-card">
-      <h3>🔗 加入房间</h3>
+      <h3><span>加入房间</span><span class="kicker">执朱 ○ · 后手</span></h3>
       <div class="input-group">
         <label>你的昵称</label>
         <input type="text" id="guest-name" placeholder="玩家二" maxlength="8">
@@ -303,23 +410,35 @@ body{
       </div>
       <button class="btn btn-primary" id="btn-join">加入房间</button>
     </div>
-    <p style="color:#555;font-size:.8em;text-align:center;max-width:400px">
-      💡 提示：一个玩家创建房间后将4位房间码告知对方，对方输入房间码即可联机对弈
+    <div class="divider">或</div>
+    <div class="menu-card">
+      <h3><span>人机对弈</span><span class="kicker">单机 · 测试</span></h3>
+      <div class="diff-row" id="diff-row">
+        <button class="diff-pill" data-diff="easy">简单</button>
+        <button class="diff-pill active" data-diff="normal">普通</button>
+        <button class="diff-pill" data-diff="hard">困难</button>
+      </div>
+      <button class="btn btn-primary" id="btn-ai">开始对弈</button>
+    </div>
+    <p class="hint">
+      两步开局：一方创建房间获得 4 位房间码，另一方输入房间码即可联机对弈
     </p>
   </div>
 
   <!-- GAME SCREEN -->
   <div id="game-screen">
     <div id="status-bar">
-      <div class="room-info">
-        <span style="color:#888;font-size:.85em">房间</span>
+      <div class="room-info" id="room-info-box">
+        <span class="room-label">房间</span>
         <span class="room-code-badge" id="room-code-display">----</span>
       </div>
+      <div class="players-info">
+        <span class="player-tag" id="host-tag"><span class="tag-x">✕</span><span id="host-name-display">玩家一</span></span>
+        <span style="color:#555">·</span>
+        <span class="player-tag" id="guest-tag"><span class="tag-o">○</span><span id="guest-name-display">玩家二</span></span>
+      </div>
       <div class="player-indicator">
-        <span>你：</span>
-        <span id="my-symbol-display" style="font-weight:700">-</span>
-        <span>| 执子：</span>
-        <span id="turn-display" style="font-weight:700">-</span>
+        <span id="turn-text">-</span>
         <span class="dot" id="turn-dot"></span>
       </div>
       <button class="btn btn-secondary btn-sm" id="btn-leave">离开</button>
@@ -328,7 +447,6 @@ body{
     <div class="board-wrapper">
       <div id="board"></div>
     </div>
-    <button class="btn btn-secondary btn-sm" id="btn-restart" style="display:none">再来一局</button>
   </div>
 
   <!-- GAME OVER OVERLAY -->
@@ -362,6 +480,87 @@ function isFull3x3(cells){
   return cells.every(c=>c!==null);
 }
 
+// 深拷贝局面（AI 搜索用）
+function cloneState(st){
+  return {
+    board: st.board.map(row=>row.slice()),
+    largeWinner: st.largeWinner.slice(),
+    currentPlayer: st.currentPlayer,
+    bannedLargeIdx: st.bannedLargeIdx,
+    gameOver: st.gameOver,
+    winner: st.winner,
+    moveCount: st.moveCount,
+    winLine: st.winLine,
+    lastMove: st.lastMove
+  };
+}
+
+// 列出局面下的全部合法落子
+function validMovesFor(st){
+  const moves = [];
+  if(st.gameOver) return moves;
+  for(let li=0;li<9;li++){
+    if(st.largeWinner[li]!==null) continue;
+    if(st.bannedLargeIdx!==null && st.bannedLargeIdx===li) continue;
+    for(let si=0;si<9;si++){
+      if(st.board[li][si]===null) moves.push({li,si});
+    }
+  }
+  return moves;
+}
+
+// 在指定局面上执行落子（假定已通过合法性校验），规则与 makeMove 一致
+function applyMoveTo(st,li,si){
+  st.board[li][si] = st.currentPlayer;
+  st.moveCount++;
+  st.lastMove = {li,si};
+
+  const smallRow = Math.floor(si/3), smallCol = si%3;
+  const nextBan = smallRow*3+smallCol;
+
+  const result = checkWin3x3(st.board[li]);
+  if(result){
+    st.largeWinner[li]=result;
+  }else if(isFull3x3(st.board[li])){
+    st.largeWinner[li]='draw';
+  }
+
+  // 大格三连判定：'draw' 的大格不参与连线
+  let overall=null;
+  for(const [a,b,c] of WIN_LINES){
+    const w=st.largeWinner[a];
+    if(w && w!=='draw' && w===st.largeWinner[b] && w===st.largeWinner[c]){
+      overall=w;
+      st.winLine=[a,b,c];
+      break;
+    }
+  }
+  if(overall){
+    st.gameOver=true;
+    st.winner=overall;
+  }else if(st.largeWinner.every(w=>w!==null)){
+    st.gameOver=true;
+    st.winner='draw';
+  }
+
+  st.currentPlayer = st.currentPlayer==='X'?'O':'X';
+
+  if(!st.gameOver){
+    if(st.largeWinner[nextBan]!==null){
+      st.bannedLargeIdx=null;
+    }else{
+      st.bannedLargeIdx=nextBan;
+    }
+    if(validMovesFor(st).length===0){
+      st.gameOver=true;
+      st.winner='draw';
+      st.bannedLargeIdx=null;
+    }
+  }else{
+    st.bannedLargeIdx=null;
+  }
+}
+
 const GameState = {
   board: [],        // board[largeIdx][smallIdx] = 'X'|'O'|null
   largeWinner: [],  // largeWinner[largeIdx] = 'X'|'O'|'draw'|null
@@ -371,6 +570,7 @@ const GameState = {
   winner: null,     // 'X'|'O'|'draw'|null
   moveCount: 0,
   winLine: null,    // [lA,lB,lC] for final large win line
+  lastMove: null,   // {li,si} 最后一手，用于高亮
 
   init(){
     this.board = Array.from({length:9},()=>Array(9).fill(null));
@@ -381,88 +581,152 @@ const GameState = {
     this.winner = null;
     this.moveCount = 0;
     this.winLine = null;
+    this.lastMove = null;
   },
 
   getValidMoves(){
-    if(this.gameOver) return [];
-    const moves = [];
-    for(let li=0;li<9;li++){
-      if(this.largeWinner[li]!==null) continue;
-      if(this.bannedLargeIdx!==null && this.bannedLargeIdx===li) continue;
-      for(let si=0;si<9;si++){
-        if(this.board[li][si]===null) moves.push({li,si});
-      }
-    }
-    return moves;
+    return validMovesFor(this);
   },
 
   makeMove(li,si){
     if(this.gameOver) return {ok:false,reason:'game_over'};
     if(this.board[li][si]!==null) return {ok:false,reason:'occupied'};
     if(this.largeWinner[li]!==null) return {ok:false,reason:'large_won'};
-    if(this.bannedLargeIdx!==null && this.bannedLargeIdx===li){
-      let hasOther = false;
-      for(let i=0;i<9;i++){
-        if(i===li) continue;
-        if(this.largeWinner[i]!==null) continue;
-        for(let j=0;j<9;j++){
-          if(this.board[i][j]===null){hasOther=true;break;}
-        }
-        if(hasOther) break;
-      }
-      if(hasOther) return {ok:false,reason:'banned'};
-    }
-
-    this.board[li][si] = this.currentPlayer;
-    this.moveCount++;
-
-    const smallRow = Math.floor(si/3), smallCol = si%3;
-    const nextBan = smallRow*3+smallCol;
-
-    const result = checkWin3x3(this.board[li]);
-    if(result){
-      this.largeWinner[li]=result;
-    }else if(isFull3x3(this.board[li])){
-      this.largeWinner[li]='draw';
-    }
-
-    const overall = checkWin3x3(this.largeWinner);
-    if(overall){
-      this.gameOver=true;
-      this.winner=overall;
-      for(const [a,b,c] of WIN_LINES){
-        if(this.largeWinner[a]===overall && this.largeWinner[b]===overall && this.largeWinner[c]===overall){
-          this.winLine=[a,b,c];
-          break;
-        }
-      }
-    }else if(this.largeWinner.every(w=>w!==null)){
-      this.gameOver=true;
-      this.winner='draw';
-    }
-
-    const prevPlayer = this.currentPlayer;
-    this.currentPlayer = this.currentPlayer==='X'?'O':'X';
-
-    if(!this.gameOver){
-      if(this.largeWinner[nextBan]!==null){
-        this.bannedLargeIdx=null;
-      }else{
-        this.bannedLargeIdx=nextBan;
-      }
-      const remaining = this.getValidMoves();
-      if(remaining.length===0){
-        this.gameOver=true;
-        this.winner='draw';
-        this.bannedLargeIdx=null;
-      }
-    }else{
-      this.bannedLargeIdx=null;
-    }
-
-    return {ok:true,prevPlayer};
+    if(this.bannedLargeIdx!==null && this.bannedLargeIdx===li) return {ok:false,reason:'banned'};
+    applyMoveTo(this,li,si);
+    return {ok:true};
   }
 };
+
+// ==================== AI ====================
+let aiDifficulty = 'normal'; // 'easy' | 'normal' | 'hard'
+const DIFF_LABEL = {easy:'简单',normal:'普通',hard:'困难'};
+
+function aiLargeWeight(li){
+  if(li===4) return 1.4;
+  return (li===0||li===2||li===6||li===8)?1.15:1.0;
+}
+
+// 静态评估：从 me 视角打分（大格归属/连线威胁/小格战术/中心控制）
+function aiEvalState(st,me){
+  const opp = me==='X'?'O':'X';
+  let score = 0;
+  for(let li=0;li<9;li++){
+    const w=st.largeWinner[li];
+    if(w===me) score += 120*aiLargeWeight(li);
+    else if(w===opp) score -= 120*aiLargeWeight(li);
+  }
+  for(const [a,b,c] of WIN_LINES){
+    const vals=[st.largeWinner[a],st.largeWinner[b],st.largeWinner[c]];
+    for(const side of [me,opp]){
+      const cnt=vals.filter(v=>v===side).length;
+      const empty=vals.filter(v=>v===null).length;
+      if(cnt===2&&empty===1) score += (side===me?38:-42);
+      else if(cnt===1&&empty===2) score += (side===me?7:-8);
+    }
+  }
+  for(let li=0;li<9;li++){
+    if(st.largeWinner[li]!==null) continue;
+    const cells=st.board[li];
+    for(const [a,b,c] of WIN_LINES){
+      const vals=[cells[a],cells[b],cells[c]];
+      for(const side of [me,opp]){
+        const cnt=vals.filter(v=>v===side).length;
+        const empty=vals.filter(v=>v===null).length;
+        if(cnt===2&&empty===1) score += (side===me?6:-7);
+      }
+    }
+    if(cells[4]===me) score+=2;
+    else if(cells[4]===opp) score-=2;
+  }
+  return score;
+}
+
+// 存在一手直接赢下整局的着法则返回它
+function aiImmediateWinMove(st){
+  for(const mv of validMovesFor(st)){
+    const s2=cloneState(st);
+    applyMoveTo(s2,mv.li,mv.si);
+    if(s2.gameOver && s2.winner===st.currentPlayer) return mv;
+  }
+  return null;
+}
+
+// 简单：能赢就赢，否则纯随机
+function aiChooseEasy(state){
+  const win = aiImmediateWinMove(state);
+  if(win) return win;
+  const moves = validMovesFor(state);
+  return moves[Math.floor(Math.random()*moves.length)];
+}
+
+// 普通：一步评估 + 惩罚给对手"一步致胜/一步夺大格"的走法
+function aiChooseNormal(state){
+  const win = aiImmediateWinMove(state);
+  if(win) return win;
+  const me = state.currentPlayer;
+  const opp = me==='X'?'O':'X';
+  let best=null,bestScore=-Infinity;
+  for(const mv of validMovesFor(state)){
+    const s2=cloneState(state);
+    applyMoveTo(s2,mv.li,mv.si);
+    let s = s2.gameOver ? 0 : aiEvalState(s2,me);
+    if(!s2.gameOver){
+      let oppGameWin=false, oppLargeWin=0;
+      for(const om of validMovesFor(s2)){
+        const s3=cloneState(s2);
+        applyMoveTo(s3,om.li,om.si);
+        if(s3.gameOver && s3.winner===opp){ oppGameWin=true; break; }
+        for(let li=0;li<9;li++){
+          if(s2.largeWinner[li]===null && s3.largeWinner[li]===opp) oppLargeWin++;
+        }
+      }
+      if(oppGameWin) s -= 1e6;
+      else s -= oppLargeWin*150;
+    }
+    s += Math.random()*4;
+    if(s>bestScore){bestScore=s;best=mv;}
+  }
+  return best;
+}
+
+// 困难：双层搜索 —— 我的每步之后，按对手的最强回应打分
+function aiChooseHard(state){
+  const win = aiImmediateWinMove(state);
+  if(win) return win;
+  const me = state.currentPlayer;
+  const opp = me==='X'?'O':'X';
+  let best=null,bestScore=-Infinity;
+  for(const mv of validMovesFor(state)){
+    const s2=cloneState(state);
+    applyMoveTo(s2,mv.li,mv.si);
+    let s;
+    if(s2.gameOver){
+      s = s2.winner===me ? 1e9 : 0;
+    }else{
+      const oppMoves = validMovesFor(s2);
+      let worst = Infinity;
+      for(const om of oppMoves){
+        const s3=cloneState(s2);
+        applyMoveTo(s3,om.li,om.si);
+        const sc = (s3.gameOver && s3.winner===opp) ? -1e9 : aiEvalState(s3,me);
+        if(sc<worst) worst=sc;
+        if(worst<=-1e8) break; // 对手已有致胜手段，无需继续
+      }
+      s = oppMoves.length ? worst : 0;
+    }
+    s += Math.random()*3;
+    if(s>bestScore){bestScore=s;best=mv;}
+  }
+  return best;
+}
+
+function chooseAiMove(state){
+  if(state.gameOver) return null;
+  if(aiDifficulty==='easy') return aiChooseEasy(state);
+  if(aiDifficulty==='hard') return aiChooseHard(state);
+  return aiChooseNormal(state);
+}
 
 // ==================== UI ====================
 const $ = id=>document.getElementById(id);
@@ -477,6 +741,10 @@ const overlayMsg = $('overlay-msg');
 
 function renderBoard(){
   boardEl.innerHTML='';
+  const validByLarge = Array.from({length:9},()=>new Set());
+  if(!GameState.gameOver){
+    GameState.getValidMoves().forEach(m=>validByLarge[m.li].add(m.si));
+  }
   GameState.board.forEach((smallCells,li)=>{
     const lc = document.createElement('div');
     lc.className='large-cell';
@@ -491,9 +759,7 @@ function renderBoard(){
       lc.classList.add('banned');
     }
 
-    const validMoves = GameState.getValidMoves();
-    const validSmallInLarge = new Set();
-    validMoves.filter(m=>m.li===li).forEach(m=>validSmallInLarge.add(m.si));
+    const validSmallInLarge = validByLarge[li];
 
     smallCells.forEach((val,si)=>{
       const sc = document.createElement('div');
@@ -501,10 +767,19 @@ function renderBoard(){
       sc.dataset.li = li;
       sc.dataset.si = si;
 
+      if(GameState.lastMove && GameState.lastMove.li===li && GameState.lastMove.si===si){
+        sc.classList.add('last-move');
+      }
+
       if(val){
         const mark = document.createElement('span');
         mark.className = 'mark '+(val==='X'?'mark-x':'mark-o');
-        mark.textContent = val==='X'?'✕':'○';
+        mark.innerHTML = val==='X'
+          ?'<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M11.5 11.5 L28.5 28.5 M28.5 11.5 L11.5 28.5"/></svg>'
+          :'<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="10.5" transform="rotate(-70 20 20)" stroke-dasharray="58 8"/></svg>';
+        if(GameState.lastMove && GameState.lastMove.li===li && GameState.lastMove.si===si){
+          mark.classList.add('pop');
+        }
         sc.appendChild(mark);
       }else if(!GameState.gameOver && lWinner===null && validSmallInLarge.has(si) && !lc.classList.contains('banned')){
         sc.classList.add('clickable');
@@ -517,7 +792,9 @@ function renderBoard(){
     if(lWinner && lWinner!=='draw'){
       const ov = document.createElement('div');
       ov.className = 'large-cell-overlay win-'+(lWinner==='X'?'x':'o');
-      ov.textContent = lWinner==='X'?'✕':'○';
+      ov.innerHTML = lWinner==='X'
+        ?'<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M11.5 11.5 L28.5 28.5 M28.5 11.5 L11.5 28.5"/></svg>'
+        :'<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="10.5" transform="rotate(-70 20 20)" stroke-dasharray="58 8"/></svg>';
       lc.appendChild(ov);
     }
 
@@ -533,38 +810,63 @@ function renderBoard(){
 }
 
 function updateStatus(){
-  const turnDisplay = $('turn-display');
+  const turnText = $('turn-text');
   const turnDot = $('turn-dot');
-  const mySymbol = $('my-symbol-display');
+  const hostTag = $('host-tag');
+  const guestTag = $('guest-tag');
+  hostTag.classList.remove('glow-x');
+  guestTag.classList.remove('glow-o');
 
   if(GameState.gameOver){
-    turnDisplay.textContent = '终局';
+    turnText.textContent = '终局';
+    turnText.className = 'turn-over';
     turnDot.className = 'dot dot-wait';
-  }else{
-    turnDisplay.textContent = GameState.currentPlayer;
-    turnDot.className = 'dot '+(GameState.currentPlayer===mySymbol.textContent?'dot-active':'dot-wait');
+    return;
   }
+  const mine = GameState.currentPlayer===mySymbol;
+  turnText.textContent = mine?'轮到你落子':(gameMode==='ai'?'电脑思考中…':'等待对方落子');
+  turnText.className = mine?'turn-mine':'turn-wait';
+  turnDot.className = 'dot '+(mine?'dot-active':'dot-wait');
+  if(GameState.currentPlayer==='X') hostTag.classList.add('glow-x');
+  else guestTag.classList.add('glow-o');
 }
 
 function updateInfo(){
   if(GameState.gameOver){
     if(GameState.winner==='draw'){
-      infoStrip.innerHTML = '⚡ 平局！所有大格已被占满';
+      infoStrip.innerHTML = `⚡ 平局！可落子区域已耗尽 · 共 ${GameState.moveCount} 手`;
     }else{
-      infoStrip.innerHTML = `🏆 <span class="highlight">${GameState.winner==='X'?'✕ 先手':'○ 后手'}</span> 获胜！`;
+      infoStrip.innerHTML = `🏆 <span class="highlight">${GameState.winner==='X'?'✕ 先手':'○ 后手'}</span> 获胜 · 共 ${GameState.moveCount} 手`;
     }
     infoStrip.style.display = 'block';
     return;
   }
+  const mv = `第 ${GameState.moveCount+1} 手 · `;
   if(GameState.bannedLargeIdx!==null){
     const r = Math.floor(GameState.bannedLargeIdx/3)+1;
     const c = GameState.bannedLargeIdx%3+1;
-    infoStrip.innerHTML = `🚫 禁入区域：大九宫格 <span class="warn">(${r},${c})</span> — 上回合落子位置决定了此禁入`;
+    infoStrip.innerHTML = `${mv}🚫 禁入区域：大九宫格 <span class="warn">(${r},${c})</span> — 上回合落子位置决定了此禁入`;
     infoStrip.style.display = 'block';
   }else{
-    infoStrip.innerHTML = `✅ 自由选择：可在任意未归属的大格中落子`;
+    infoStrip.innerHTML = `${mv}✅ 自由选择：可在任意未归属的大格中落子`;
     infoStrip.style.display = 'block';
   }
+}
+
+function updateNames(){
+  let hName,gName,hMe,gMe;
+  if(gameMode==='ai'){
+    hName='你';
+    gName='电脑（'+DIFF_LABEL[aiDifficulty]+'）';
+    hMe=true; gMe=false;
+  }else{
+    hName = myRole==='host'?myName:oppName;
+    gName = myRole==='guest'?myName:oppName;
+    hMe = myRole==='host';
+    gMe = myRole==='guest';
+  }
+  $('host-name-display').textContent = (hName||'玩家一')+(hMe?'（你）':'');
+  $('guest-name-display').textContent = (gName||'玩家二')+(gMe?'（你）':'');
 }
 
 function showOverlay(){
@@ -573,12 +875,19 @@ function showOverlay(){
     overlayTitle.innerHTML = '🤝 平局';
     overlayTitle.className = 'win-text-draw';
     overlayMsg.textContent = '棋逢对手，胜负未分！';
-  }else{
-    const isX = GameState.winner==='X';
-    overlayTitle.innerHTML = `🏆 ${isX?'✕ 先手':'○ 后手'} 获胜！`;
-    overlayTitle.className = isX?'win-text-x':'win-text-o';
-    overlayMsg.textContent = '大九宫格三连达成，恭喜获胜！';
+    return;
   }
+  if(gameMode==='ai'){
+    const aiWin = GameState.winner==='O';
+    overlayTitle.innerHTML = aiWin?'🤖 电脑获胜！':'🏆 你获胜！';
+    overlayTitle.className = aiWin?'win-text-o':'win-text-x';
+    overlayMsg.textContent = aiWin?'墨朱再战，卷土重来！':'大九宫格三连达成，恭喜获胜！';
+    return;
+  }
+  const isX = GameState.winner==='X';
+  overlayTitle.innerHTML = `🏆 ${isX?'✕ 先手':'○ 后手'} 获胜！`;
+  overlayTitle.className = isX?'win-text-x':'win-text-o';
+  overlayMsg.textContent = '大九宫格三连达成，恭喜获胜！';
 }
 
 function hideOverlay(){
@@ -598,8 +907,14 @@ let peer = null;
 let conn = null;
 let myRole = null; // 'host'|'guest'
 let mySymbol = null; // 'X'|'O'
+let myName = '';
+let oppName = '';
 let roomCode = '';
 let moveInProgress = false;
+let moveTimer = null;
+let roundFirst = 'X'; // 每局重开时轮换先手
+let gameMode = 'online'; // 'online' | 'ai'
+let aiTimer = null;
 
 function generateRoomCode(){
   return String(Math.floor(1000+Math.random()*9000));
@@ -607,42 +922,67 @@ function generateRoomCode(){
 
 function initPeer(id){
   return new Promise((resolve,reject)=>{
-    const p = new Peer(id,{
-      debug:0
+    let settled = false;
+    const p = new Peer(id,{debug:0});
+    const timer = setTimeout(()=>{
+      if(settled) return;
+      settled = true;
+      try{p.destroy();}catch(e){}
+      reject(new Error('timeout'));
+    },15000);
+    p.on('open',()=>{
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(p);
     });
-    p.on('open',()=>resolve(p));
     p.on('error',err=>{
+      if(settled) return;
       if(err.type==='unavailable-id'){
-        p.destroy();
-        const altId = id+'-'+Math.floor(Math.random()*100);
-        initPeer(altId).then(resolve).catch(reject);
-      }else{
+        settled = true;
+        clearTimeout(timer);
+        try{p.destroy();}catch(e){}
         reject(err);
       }
+      // 其他错误：等待 open 或由超时兜底
     });
-    setTimeout(()=>reject(new Error('timeout')),15000);
   });
 }
 
 async function createRoom(){
-  const name = $('host-name').value.trim()||'玩家一';
-  roomCode = generateRoomCode();
-  const peerId = 'ttt-host-'+roomCode;
-  try{
-    peer = await initPeer(peerId);
-  }catch(e){
-    showToast('创建房间失败，请刷新重试');
-    return;
-  }
+  myName = $('host-name').value.trim()||'玩家一';
+  oppName = '';
   myRole = 'host';
   mySymbol = 'X';
+  roundFirst = 'X';
+  let p = null;
+  for(let attempt=0;attempt<5;attempt++){
+    roomCode = generateRoomCode();
+    try{
+      p = await initPeer('ttt-host-'+roomCode);
+      break;
+    }catch(err){
+      p = null;
+      if(!(err && err.type==='unavailable-id')) break; // 仅房间码被占用时换码重试
+    }
+  }
+  if(!p){
+    showToast('创建房间失败，请检查网络后重试');
+    myRole = null;
+    mySymbol = null;
+    return;
+  }
+  peer = p;
   $('room-code-display').textContent = roomCode;
-  $('my-symbol-display').textContent = '✕';
 
   peer.on('connection',(c)=>{
     if(conn){c.close();return;}
     conn = c;
     setupConnection();
+  });
+  peer.on('disconnected',()=>{try{peer.reconnect();}catch(e){}});
+  peer.on('error',err=>{
+    if(err.type!=='unavailable-id') showToast('网络异常：'+err.type);
   });
 
   showToast('房间创建成功！码：'+roomCode,true);
@@ -650,24 +990,35 @@ async function createRoom(){
 }
 
 async function joinRoom(){
-  const name = $('guest-name').value.trim()||'玩家二';
   const code = $('room-code-input').value.trim();
   if(!/^\d{4}$/.test(code)){
     showToast('请输入4位数字房间码');
     return;
   }
+  myName = $('guest-name').value.trim()||'玩家二';
+  oppName = '';
   roomCode = code;
+  myRole = 'guest';
+  mySymbol = 'O';
+  roundFirst = 'X';
   try{
     peer = await initPeer('ttt-guest-'+roomCode+'-'+Math.floor(Math.random()*1000));
   }catch(e){
-    showToast('连接失败，请检查房间码后重试');
+    showToast('连接失败，请检查网络后重试');
     return;
   }
-  myRole = 'guest';
-  mySymbol = 'O';
-  $('room-code-display').textContent = roomCode;
-  $('my-symbol-display').textContent = '○';
+  peer.on('disconnected',()=>{try{peer.reconnect();}catch(e){}});
+  peer.on('error',err=>{
+    if(!peer) return;
+    if(err.type==='peer-unavailable'){
+      showToast('未找到房间，请确认主机已创建');
+      cleanup();
+    }else if(err.type!=='unavailable-id'){
+      showToast('网络异常：'+err.type);
+    }
+  });
 
+  $('room-code-display').textContent = roomCode;
   const c = peer.connect('ttt-host-'+roomCode,{reliable:true});
   conn = c;
   c.on('open',()=>{
@@ -675,35 +1026,47 @@ async function joinRoom(){
     showToast('已加入房间！',true);
     enterGame();
   });
-  c.on('error',()=>{
-    showToast('无法连接到主机，请检查房间码');
-    cleanup();
-  });
+  c.on('error',()=>{});
   setTimeout(()=>{
-    if(!conn || !conn.open){
+    if(peer && (!conn || !conn.open)){
       showToast('连接超时，请确认主机已创建房间');
-      cleanup();
+      backToMenu();
     }
   },12000);
 }
 
+function sendHello(){
+  if(conn && conn.open){
+    conn.send({type:'hello',name:myName});
+  }
+}
+
 function setupConnection(){
-  conn.on('data',(data)=>{
-    handleMessage(data);
-  });
+  conn.on('data',handleMessage);
   conn.on('close',()=>{
+    if(menuScreen.style.display!=='none') return; // 主动返回大厅时忽略自身 close 事件
     if(!GameState.gameOver){
       showToast('对方已断开连接');
       showOverlayForce('对方断开连接','请返回大厅重新开始');
     }
   });
   conn.on('error',()=>{});
+  if(conn.open){
+    sendHello();
+  }else{
+    conn.on('open',sendHello);
+  }
 }
 
 function handleMessage(data){
   switch(data.type){
+    case 'hello':
+      oppName = String(data.name||'').slice(0,8)||'对手';
+      updateNames();
+      break;
     case 'game_state':
       moveInProgress = false;
+      clearTimeout(moveTimer);
       GameState.board = data.board;
       GameState.largeWinner = data.largeWinner;
       GameState.currentPlayer = data.currentPlayer;
@@ -712,8 +1075,10 @@ function handleMessage(data){
       GameState.winner = data.winner;
       GameState.moveCount = data.moveCount;
       GameState.winLine = data.winLine;
+      GameState.lastMove = data.lastMove;
       refreshUI();
       if(GameState.gameOver) showOverlay();
+      else hideOverlay();
       break;
     case 'move':
       if(myRole!=='host') return;
@@ -721,23 +1086,19 @@ function handleMessage(data){
       {
         const res = GameState.makeMove(data.li,data.si);
         if(res.ok){
-          syncGameState();
           refreshUI();
           if(GameState.gameOver) showOverlay();
         }
+        syncGameState(); // 无效落子也回包，让对方重置等待状态
       }
+      break;
+    case 'restart_request':
+      if(myRole!=='host') return;
+      startNewRound();
+      syncGameState();
       break;
     case 'request_state':
       syncGameState();
-      break;
-    case 'restart':
-      GameState.init();
-      mySymbol = myRole==='host'?'X':'O';
-      GameState.currentPlayer = 'X';
-      $('my-symbol-display').textContent = mySymbol==='X'?'✕':'○';
-      hideOverlay();
-      refreshUI();
-      $('btn-restart').style.display = 'none';
       break;
   }
 }
@@ -753,7 +1114,8 @@ function syncGameState(){
       gameOver:GameState.gameOver,
       winner:GameState.winner,
       moveCount:GameState.moveCount,
-      winLine:GameState.winLine
+      winLine:GameState.winLine,
+      lastMove:GameState.lastMove
     });
   }
 }
@@ -761,6 +1123,19 @@ function syncGameState(){
 function onCellClick(li,si){
   if(moveInProgress) return;
   if(GameState.gameOver) return;
+
+  if(gameMode==='ai'){
+    if(GameState.currentPlayer!==mySymbol) return;
+    const res = GameState.makeMove(li,si);
+    if(!res.ok) return;
+    refreshUI();
+    if(GameState.gameOver){ showOverlay(); return; }
+    moveInProgress = true; // AI 思考期间禁止点击
+    clearTimeout(aiTimer);
+    aiTimer = setTimeout(aiTurn,550+Math.random()*450);
+    return;
+  }
+
   if(GameState.currentPlayer!==mySymbol) return;
   if(!conn || !conn.open){
     showToast('连接已断开');
@@ -780,6 +1155,13 @@ function onCellClick(li,si){
     if(GameState.bannedLargeIdx===li && GameState.largeWinner[li]===null) return;
     moveInProgress = true;
     conn.send({type:'move',li,si});
+    clearTimeout(moveTimer);
+    moveTimer = setTimeout(()=>{
+      if(!moveInProgress) return;
+      moveInProgress = false;
+      showToast('落子未响应，已重新同步');
+      if(conn && conn.open) conn.send({type:'request_state'});
+    },4000);
   }
 }
 
@@ -789,14 +1171,55 @@ function refreshUI(){
   updateInfo();
 }
 
+function startNewRound(){
+  if(gameMode!=='ai'){
+    roundFirst = roundFirst==='X'?'O':'X';
+  }
+  GameState.init();
+  GameState.currentPlayer = roundFirst;
+  hideOverlay();
+  refreshUI();
+}
+
+function startAiGame(){
+  gameMode = 'ai';
+  myRole = 'ai';
+  mySymbol = 'X';
+  roundFirst = 'X';
+  myName = '你';
+  oppName = '电脑';
+  moveInProgress = false;
+  enterGame();
+  showToast('人机对弈开始，你执墨先手',true);
+}
+
+function aiTurn(){
+  moveInProgress = false;
+  clearTimeout(aiTimer);
+  if(gameMode!=='ai' || GameState.gameOver || GameState.currentPlayer!=='O') return;
+  const mv = chooseAiMove(GameState);
+  if(!mv) return;
+  GameState.makeMove(mv.li,mv.si);
+  refreshUI();
+  if(GameState.gameOver) showOverlay();
+}
+
 function enterGame(){
   menuScreen.style.display = 'none';
   gameScreen.style.display = 'flex';
   statusBar.style.display = 'flex';
   infoStrip.style.display = 'block';
+  $('room-info-box').style.display = gameMode==='ai'?'none':'flex';
+  updateNames();
 
+  if(gameMode==='ai'){
+    GameState.init();
+    refreshUI();
+    return;
+  }
   if(myRole==='host'){
     GameState.init();
+    GameState.currentPlayer = roundFirst;
     refreshUI();
     syncGameState();
   }else{
@@ -805,6 +1228,8 @@ function enterGame(){
 }
 
 function cleanup(){
+  clearTimeout(moveTimer);
+  clearTimeout(aiTimer);
   if(conn){try{conn.close();}catch(e){}conn=null;}
   if(peer){try{peer.destroy();}catch(e){}peer=null;}
 }
@@ -813,28 +1238,34 @@ function backToMenu(){
   cleanup();
   hideOverlay();
   GameState.init();
+  roundFirst = 'X';
+  gameMode = 'online';
+  moveInProgress = false;
   menuScreen.style.display = 'flex';
   gameScreen.style.display = 'none';
   statusBar.style.display = 'none';
   infoStrip.style.display = 'none';
-  $('btn-restart').style.display = 'none';
+  oppName = '';
   $('room-code-display').textContent = '----';
-  $('my-symbol-display').textContent = '-';
   boardEl.innerHTML = '';
 }
 
 function requestRestart(){
-  if(conn && conn.open){
-    conn.send({type:'restart'});
+  if(gameMode==='ai'){
+    roundFirst = 'X';
+    startNewRound();
+    return;
   }
-  GameState.init();
-  mySymbol = myRole==='host'?'X':'O';
-  GameState.currentPlayer = 'X';
-  $('my-symbol-display').textContent = mySymbol==='X'?'✕':'○';
-  hideOverlay();
-  refreshUI();
-  $('btn-restart').style.display = 'none';
-  syncGameState();
+  if(conn && conn.open){
+    if(myRole==='host'){
+      startNewRound();
+      syncGameState();
+    }else{
+      conn.send({type:'restart_request'});
+    }
+  }else{
+    backToMenu();
+  }
 }
 
 function showOverlayForce(title,msg){
@@ -846,16 +1277,23 @@ function showOverlayForce(title,msg){
 // ==================== EVENT BINDINGS ====================
 $('btn-create').addEventListener('click',createRoom);
 $('btn-join').addEventListener('click',joinRoom);
+$('btn-ai').addEventListener('click',startAiGame);
+document.querySelectorAll('.diff-pill').forEach(p=>{
+  p.addEventListener('click',()=>{
+    document.querySelectorAll('.diff-pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    aiDifficulty = p.dataset.diff;
+  });
+});
 $('btn-leave').addEventListener('click',backToMenu);
 $('btn-play-again').addEventListener('click',()=>{
-  if(conn && conn.open){
+  if(gameMode==='ai' || (conn && conn.open)){
     requestRestart();
   }else{
     backToMenu();
   }
 });
 $('btn-back-menu').addEventListener('click',backToMenu);
-$('btn-restart').addEventListener('click',requestRestart);
 
 $('room-code-input').addEventListener('input',function(){
   this.value = this.value.replace(/\D/g,'').slice(0,4);
@@ -875,13 +1313,13 @@ document.addEventListener('keydown',function(e){
 const pulseStyle = document.createElement('style');
 pulseStyle.textContent = `
 @keyframes pulse{
-  from{box-shadow:0 0 8px rgba(255,235,59,.4)}
-  to{box-shadow:0 0 20px rgba(255,235,59,.8)}
+  from{box-shadow:0 0 8px rgba(201,161,94,.3)}
+  to{box-shadow:0 0 22px rgba(201,161,94,.75)}
 }`;
 document.head.appendChild(pulseStyle);
 
 console.log('双层井字棋LAN联机对弈已就绪');
-console.log('规则：小格落子位置→禁入对应大格 | 小格三连得大格 | 大格三连获胜');
+console.log('规则：小格落子位置→禁入对应大格 | 小格三连得大格 | 大格三连获胜 | 重开轮换先手');
 </script>
 </body>
 </html>
