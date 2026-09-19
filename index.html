@@ -515,8 +515,8 @@ function applyMoveTo(st,li,si){
   st.moveCount++;
   st.lastMove = {li,si};
 
-  const smallRow = Math.floor(si/3), smallCol = si%3;
-  const nextBan = smallRow*3+smallCol;
+  // 禁入规则：落在哪个大格，对面下一轮就禁入哪个大格（遮罩始终盖在上一手落子的大格上）
+  const nextBan = li;
 
   const result = checkWin3x3(st.board[li]);
   if(result){
@@ -845,7 +845,11 @@ function updateInfo(){
   if(GameState.bannedLargeIdx!==null){
     const r = Math.floor(GameState.bannedLargeIdx/3)+1;
     const c = GameState.bannedLargeIdx%3+1;
-    infoStrip.innerHTML = `${mv}🚫 禁入区域：大九宫格 <span class="warn">(${r},${c})</span> — 上回合落子位置决定了此禁入`;
+    const cell = `大九宫格 <span class="warn">(${r},${c})</span>`;
+    const mine = GameState.currentPlayer===mySymbol;
+    infoStrip.innerHTML = mine
+      ? `${mv}🚫 本轮你禁入 ${cell} — 对面刚在这里落子`
+      : `${mv}⛔ 你刚在这里落子 — 本轮对面禁入 ${cell}`;
     infoStrip.style.display = 'block';
   }else{
     infoStrip.innerHTML = `${mv}✅ 自由选择：可在任意未归属的大格中落子`;
@@ -1319,7 +1323,7 @@ pulseStyle.textContent = `
 document.head.appendChild(pulseStyle);
 
 console.log('双层井字棋LAN联机对弈已就绪');
-console.log('规则：小格落子位置→禁入对应大格 | 小格三连得大格 | 大格三连获胜 | 重开轮换先手');
+console.log('规则：对面落在哪个大格，你下一轮就禁入哪个大格 | 小格三连得大格 | 大格三连获胜 | 重开轮换先手');
 </script>
 </body>
 </html>
